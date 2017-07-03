@@ -14,7 +14,7 @@ namespace ReadQueue
         {
             Console.WriteLine("Receive critical messages. Ctrl-C to exit.\n");
             var connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-            var queueName = "ebqueue1";
+            var queueName = "sbqueue2";
 
             var client = QueueClient.CreateFromConnectionString(connectionString, queueName);
 
@@ -23,7 +23,9 @@ namespace ReadQueue
                 Stream stream = message.GetBody<Stream>();
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
                 string s = reader.ReadToEnd();
-                Console.WriteLine(String.Format("Message body: {0}", s));
+                Console.WriteLine(String.Format("Message Label {0},\n body: {1}", message.Label, s));
+                
+                
             });
 
             Console.ReadLine();
