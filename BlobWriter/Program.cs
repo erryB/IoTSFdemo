@@ -15,11 +15,10 @@ namespace BlobWriter
     class Program
     {
         public static string data;
-        //public static Stream stream;
-
+        
         static void Main(string[] args)
         {
-            Console.WriteLine("Reader - reads messages from Q1. Ctrl-C to exit.\n");
+            Console.WriteLine("BlobWriter - reads messages from Q2, writes to Blob. Ctrl-C to exit.\n");
             var connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
             var queueName = "sbqueue2";
             var queueClient = QueueClient.CreateFromConnectionString(connectionString, queueName);
@@ -50,8 +49,9 @@ namespace BlobWriter
                 data = reader.ReadToEnd();
 
                 //Console.WriteLine(String.Format("BlobWriter - Message read from Q2: {0}", data));
-                appendBlob.AppendText(data);
+                appendBlob.AppendText(data + "\n");
 
+                Console.WriteLine("appended line to Blob: {0}", data);
                 //Read the append blob to the console window.
                 //Console.WriteLine(appendBlob.DownloadText());
 
