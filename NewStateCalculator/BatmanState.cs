@@ -9,6 +9,7 @@ namespace NewStateCalculator
     [Serializable]
     class BatmanState
     {
+        public string DeviceID { get; set; }
         public double Temperature { get; set; }
         public double Humidity { get; set; }
         public int CountTempIncreasing { get; set; }

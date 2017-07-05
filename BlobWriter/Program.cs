@@ -17,8 +17,6 @@ namespace BlobWriter
         public static string data;
         public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
 
-
-
         static void Main(string[] args)
         {
             Console.WriteLine("BlobWriter - reads messages from Q2, writes to Blob. Ctrl-C to exit.\n");

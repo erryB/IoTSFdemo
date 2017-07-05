@@ -16,9 +16,7 @@ namespace NewStateCalculator
         public static BatmanState prevBatmanState;
         public static JokerState prevJokerState;
         public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-
-
-
+        
         static void Main(string[] args)
         {
             Console.WriteLine("NewStateCalculator - reads messages from T2, calculates new State for each device. Ctrl-C to exit.\n");
@@ -45,73 +43,74 @@ namespace NewStateCalculator
                     updateBatmanState(json);
                     var state = JsonConvert.SerializeObject(prevBatmanState);
                     sendToQueue(state, "Batman");
+                    Console.WriteLine("message from Batman sent to Q3: {0}", state);
                 }
                 else if (json["deviceId"].Value<string>() == "Joker")
                 {
                     updateJokerState(json);
                     var state = JsonConvert.SerializeObject(prevBatmanState);
                     sendToQueue(state, "Joker");
+                    Console.WriteLine("message from Joker sent to Q3: {0}", state);
+
                 }
 
             });
             Console.ReadLine();
-
-
-
-
+            
         }
 
         public static void updateBatmanState(JObject json)
         {
             BatmanState currentBatmanState = new BatmanState();
+            currentBatmanState.DeviceID = "Batman";
             currentBatmanState.Temperature = json["temperature"].Value<double>();
             currentBatmanState.Humidity = json["humidity"].Value<double>();
-            if (prevBatmanState != null)
+            
+            if (currentBatmanState.Temperature >= prevBatmanState.Temperature)
             {
-                if (prevBatmanState.Temperature < currentBatmanState.Temperature)
-                {
-                    currentBatmanState.CountTempIncreasing = prevBatmanState.CountTempIncreasing++;
-                }
-                else
-                {
-                    currentBatmanState.CountTempIncreasing = 0;
-                }
-                if (prevBatmanState.Humidity < currentBatmanState.Humidity)
-                {
-                    currentBatmanState.CountTempIncreasing = prevBatmanState.CountTempIncreasing++;
-                }
-                else
-                {
-                    currentBatmanState.CountHumIncreasing = 0;
-                }
+                currentBatmanState.CountTempIncreasing = prevBatmanState.CountTempIncreasing+1;
             }
+            else
+            {
+                currentBatmanState.CountTempIncreasing = 0;
+            }
+            if (currentBatmanState.Humidity >= prevBatmanState.Humidity)
+            {
+                currentBatmanState.CountHumIncreasing = prevBatmanState.CountHumIncreasing+1;
+            }
+            else
+            {
+                currentBatmanState.CountHumIncreasing = 0;
+            }
+           
             prevBatmanState = currentBatmanState;
         }
 
         public static void updateJokerState(JObject json)
         {
             JokerState currentJokerState = new JokerState();
+            currentJokerState.DeviceID = "Joker";
+
             currentJokerState.Temperature = json["temperature"].Value<double>();
             currentJokerState.IsOpen = json["temperature"].Value<bool>();
-            if (prevJokerState != null)
+            
+            if (currentJokerState.Temperature >= prevJokerState.Temperature)
             {
-                if (prevJokerState.Temperature < currentJokerState.Temperature)
-                {
-                    currentJokerState.TempIncreasingCount = prevJokerState.TempIncreasingCount++;
-                }
-                else
-                {
-                    currentJokerState.TempIncreasingCount = 0;
-                }
-                if (prevJokerState.IsOpen && currentJokerState.IsOpen)
-                {
-                    currentJokerState.DoorOpenCount = prevJokerState.DoorOpenCount++;
-                }
-                else
-                {
-                    currentJokerState.DoorOpenCount = 0;
-                }
+                currentJokerState.TempIncreasingCount = prevJokerState.TempIncreasingCount+1;
             }
+            else
+            {
+                currentJokerState.TempIncreasingCount = 0;
+            }
+            if (prevJokerState.IsOpen && currentJokerState.IsOpen)
+            {
+                currentJokerState.DoorOpenCount = prevJokerState.DoorOpenCount+1;
+            }
+            else
+            {
+                currentJokerState.DoorOpenCount = 0;
+            }
+           
             prevJokerState = currentJokerState;
 
         }
@@ -129,16 +128,15 @@ namespace NewStateCalculator
             {
                 Label = "NewStateForDevice " + deviceID
             };
-            
+            bm.Properties["deviceId"] = deviceID;
+
+
             var queueName = "sbqueue3";
             var queue3Client = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
             queue3Client.Send(bm);
-            Console.WriteLine("message sent to Q3 -> {0}", deviceID);
-
-
+            
         }
-
         
     }
 }

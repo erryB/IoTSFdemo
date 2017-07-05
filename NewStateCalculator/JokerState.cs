@@ -9,6 +9,7 @@ namespace NewStateCalculator
     [Serializable]
     class JokerState
     {
+        public string DeviceID { get; set; }
         public double Temperature { get; set; }
         public bool IsOpen { get; set; }
         public int TempIncreasingCount { get; set; }
