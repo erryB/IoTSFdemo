@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAReader", "CAReader\CARead
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlobWriter", "BlobWriter\BlobWriter.csproj", "{7510A519-5221-43AE-B67D-22D102827864}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewStateCalculator", "NewStateCalculator\NewStateCalculator.csproj", "{5F4F8CB4-A098-48D5-A10F-07C626A1EA55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{7510A519-5221-43AE-B67D-22D102827864}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7510A519-5221-43AE-B67D-22D102827864}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7510A519-5221-43AE-B67D-22D102827864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F4F8CB4-A098-48D5-A10F-07C626A1EA55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F4F8CB4-A098-48D5-A10F-07C626A1EA55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F4F8CB4-A098-48D5-A10F-07C626A1EA55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F4F8CB4-A098-48D5-A10F-07C626A1EA55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

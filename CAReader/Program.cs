@@ -7,21 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.ServiceBus;
 
 namespace CAReader
 {
     class Program
     {
         public static DeviceMsg deviceMsg;
-        public static string connectionString;
+        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
 
 
         static void Main(string[] args)
         {
             Console.WriteLine("Reader - reads messages from Q1. Ctrl-C to exit.\n");
-            connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
             var queueName = "sbqueue1";
-            var queueClient = QueueClient.CreateFromConnectionString(connectionString, queueName);
+            var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
             queueClient.OnMessage(message =>
             {
@@ -31,9 +31,10 @@ namespace CAReader
                 DateTime timestamp = message.EnqueuedTimeUtc;
 
                 deviceMsg = validateMessage(s, timestamp);
-                sendToQueue();
+                Console.WriteLine(String.Format("validated message: {0}, timestamp {1}", s, timestamp));
 
-                Console.WriteLine(String.Format("validated message: {0}, timestamp {1}\nsent to Q2", s, timestamp));
+                sendToTopic();
+                Console.WriteLine(String.Format("message sent to Topic2\n"));
                 
             });
 
@@ -55,27 +56,26 @@ namespace CAReader
             return deviceMsg;
         }
 
-        public static void sendToQueue()
+        public static void sendToTopic()
         {
+            var topicName = "sbtopic2";
+            var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
+            
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             writer.Write(deviceMsg.Data);
             writer.Flush();
             stream.Position = 0;
 
-
+                       
             var bm = new BrokeredMessage(stream)
             {
                 Label = "ValidMessagefrom" + deviceMsg.DeviceID
             };
             bm.Properties["timestamp"] = deviceMsg.TimeStamp;
 
-            var queueName = "sbqueue2";
-            var queue2Client = QueueClient.CreateFromConnectionString(connectionString, queueName);
-
-            queue2Client.Send(bm);
-
-
+            client.Send(bm);
+            
         }
 
         public static void sendToBlobWriter()

@@ -15,13 +15,18 @@ namespace BlobWriter
     class Program
     {
         public static string data;
-        
+        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+
+
+
         static void Main(string[] args)
         {
             Console.WriteLine("BlobWriter - reads messages from Q2, writes to Blob. Ctrl-C to exit.\n");
-            var connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-            var queueName = "sbqueue2";
-            var queueClient = QueueClient.CreateFromConnectionString(connectionString, queueName);
+            
+            var topicName = "sbtopic2";
+            var subscriptionName = "toBlob";
+            var client = SubscriptionClient.CreateFromConnectionString(sbConnectionString, topicName, subscriptionName);
+
 
             //Parse the connection string for the storage account.
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Microsoft.Azure.CloudConfigurationManager.GetSetting("StorageConnectionString"));
@@ -42,7 +47,7 @@ namespace BlobWriter
             //You can check whether the blob exists to avoid overwriting it by using CloudAppendBlob.Exists().
             appendBlob.CreateOrReplace();
 
-            queueClient.OnMessage(message =>
+            client.OnMessage(message =>
             {
                 Stream stream = message.GetBody<Stream>();
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
@@ -52,29 +57,8 @@ namespace BlobWriter
                 appendBlob.AppendText(data + "\n");
 
                 Console.WriteLine("appended line to Blob: {0}", data);
-                //Read the append blob to the console window.
-                //Console.WriteLine(appendBlob.DownloadText());
-
+                
             });
-
-            
-
-            //int numBlocks = 10;
-
-            ////Generate an array of random bytes.
-            //Random rnd = new Random();
-            //byte[] bytes = new byte[numBlocks];
-            //rnd.NextBytes(bytes);
-
-            ////Simulate a logging operation by writing text data and byte data to the end of the append blob.
-            //for (int i = 0; i < numBlocks; i++)
-            //{
-            //    appendBlob.AppendText(String.Format("Timestamp: {0:u} \tLog Entry: {1}{2}",
-            //        DateTime.UtcNow, bytes[i], Environment.NewLine));
-            //}
-
-
-            
 
             Console.ReadLine();
         }

@@ -12,9 +12,9 @@ namespace ReadQueue
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Receive critical messages. Ctrl-C to exit.\n");
+            Console.WriteLine("Read Q3. Ctrl-C to exit.\n");
             var connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-            var queueName = "sbqueue2";
+            var queueName = "sbqueue3";
 
             var client = QueueClient.CreateFromConnectionString(connectionString, queueName);
 
