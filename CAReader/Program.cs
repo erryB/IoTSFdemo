@@ -27,7 +27,7 @@ namespace CAReader
             {
                 Stream stream = message.GetBody<Stream>();
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
-                string s = reader.ReadToEnd();
+                string s = reader.ReadToEndAsync();
                 DateTime timestamp = message.EnqueuedTimeUtc;
 
                 deviceMsg = validateMessage(s, timestamp);
@@ -56,7 +56,7 @@ namespace CAReader
             return deviceMsg;
         }
 
-        public static void sendToTopic()
+        public static void sendToTopic()//sendToActor
         {
             var topicName = "sbtopic2";
             var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
