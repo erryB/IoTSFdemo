@@ -56,16 +56,15 @@ namespace DispatcherService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+            ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - running");
 
-            //long iterations = 0;
+            //IDispatcherService helloWorldClient = ServiceProxy.Create<IDispatcherService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
+            //string message = await helloWorldClient.HelloWorldAsync();
 
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - running");
                 var queueName = "sbqueue1";
                 var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
@@ -76,21 +75,17 @@ namespace DispatcherService
                     string s = await reader.ReadToEndAsync();
                     DateTime timestamp = message.EnqueuedTimeUtc;
 
-                    string messageToBeSent = validateMessage(s, timestamp);
-                    //Console.WriteLine(String.Format("validated message: {0}, timestamp {1}", s, timestamp));
-
-                    //sendToTopic();
-                    //Console.WriteLine(String.Format("message sent to Topic2\n"));
-
-                    SendToBatmanDeviceActor(messageToBeSent);
-                    SendToBlobWriterService(messageToBeSent);
+                    string messageToBeSent = validateAndSendMessage(s, timestamp);
+                   
+                    //SendToBatmanDeviceActor(messageToBeSent);
+                    //SendToBlobWriterService(messageToBeSent);
 
                 });
 
                 //Console.ReadLine();
             }
 
-            string validateMessage(string messageString, DateTime ts)
+            string validateAndSendMessage(string messageString, DateTime ts)
             {
                 string returnMessage = null;
                 var msg = JsonConvert.DeserializeObject(messageString);
