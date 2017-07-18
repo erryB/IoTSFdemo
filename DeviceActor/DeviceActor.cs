@@ -21,6 +21,8 @@ namespace DeviceActor
     [StatePersistence(StatePersistence.Persisted)]
     internal class DeviceActor : Actor, IDeviceActor
     {
+
+
         /// <summary>
         /// Initializes a new instance of DeviceActor
         /// </summary>
@@ -29,6 +31,11 @@ namespace DeviceActor
         public DeviceActor(ActorService actorService, ActorId actorId)
             : base(actorService, actorId)
         {
+        }
+
+        public Task UpdateDeviceState(string message)
+        {
+            
         }
 
         /// <summary>

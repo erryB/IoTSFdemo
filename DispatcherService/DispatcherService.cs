@@ -13,6 +13,13 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using DeviceActor.Interfaces;
+using Microsoft.ServiceFabric.Actors.Client;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+using BlobWriterService;
+using BlobWriter.interfaces;
+using CommonResources;
 
 namespace DispatcherService
 {
@@ -28,7 +35,7 @@ namespace DispatcherService
     internal sealed class DispatcherService : StatelessService /*IDispatcherService*/
     {
         public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-
+        public string deviceID = null;
 
         public DispatcherService(StatelessServiceContext context)
             : base(context)
@@ -75,74 +82,51 @@ namespace DispatcherService
                     string s = await reader.ReadToEndAsync();
                     DateTime timestamp = message.EnqueuedTimeUtc;
 
-                    string messageToBeSent = validateAndSendMessage(s, timestamp);
-                   
-                    //SendToBatmanDeviceActor(messageToBeSent);
-                    //SendToBlobWriterService(messageToBeSent);
+                    var device = validateMessage(s, timestamp);
+                    string messageToBeSent = JsonConvert.SerializeObject(device);//ok???
+
+                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
+                    await proxyActor.UpdateDeviceState(device);//not implemented yet
+
+                    var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
+                    await proxyBlob.ReceiveMessageAsync(messageToBeSent);
 
                 });
+                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
 
-                //Console.ReadLine();
+
+
             }
 
-            string validateAndSendMessage(string messageString, DateTime ts)
+            Device validateMessage(string messageString, DateTime ts)
             {
-                string returnMessage = null;
+                
+                Device returnDevice = new Device();
                 var msg = JsonConvert.DeserializeObject(messageString);
                 JObject json = JObject.Parse(messageString);
-                string deviceID = json["deviceId"].Value<string>();
+                
+                returnDevice.DeviceID = json["deviceId"].Value<string>();
+                returnDevice.MessageID = json["messageId"].Value<int>();
+                returnDevice.Timestamp = ts;
+                returnDevice.Temperature = json["temperature"].Value<double>();
 
 
-                if ( deviceID == "Batman")
+                if ( returnDevice.DeviceID == "Batman")
                 {
-                    
-                    try
-                    {
-                       
-                        var messageToBeSent = new
-                        {
-                            deviceID = "Batman",
-                            messageID = json["messageId"].Value<int>(),
-                            timestamp = ts,
-                            temperature = json["temperature"].Value<double>(),
-                            humidity = json["humidity"].Value<double>()                           
-                        };
-                        returnMessage = JsonConvert.SerializeObject(messageToBeSent);
-                        
-
-                    } catch (Exception e)
-                    {
-                        returnMessage = "Error in parsing message from Batman";
-                    }
-                   
-                } else if(deviceID == "Joker")
+                    returnDevice.Humidity = json["humidity"].Value<double>();
+                    returnDevice.OpenDoor = false;
+                     
+                } else if(returnDevice.DeviceID == "Joker")
                 {
-                    try
-                    {
-
-                        var messageToBeSent = new
-                        {
-                            deviceID = "Joker",
-                            messageID = json["messageId"].Value<int>(),
-                            timestamp = ts,
-                            temperature = json["temperature"].Value<double>(),
-                            doorOpen = json["doorOpen"].Value<double>()
-                        };
-                        returnMessage = JsonConvert.SerializeObject(messageToBeSent);
-
-
-                    }
-                    catch (Exception e)
-                    {
-                        returnMessage = "Error in parsing message from Joker";
-                    }
+                    returnDevice.OpenDoor = json["doorOpen"].Value<bool>();
+                    returnDevice.Humidity = 0.0;
+                     
                 }
-                return returnMessage;
+                return returnDevice;
 
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
+            
         }
     }
 }

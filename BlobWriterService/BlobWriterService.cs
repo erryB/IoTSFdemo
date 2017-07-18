@@ -1,27 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
-using Microsoft.ServiceBus.Messaging;
-using System.IO;
-using System.Text;
 using System.Collections;
-using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
+using BlobWriter.interfaces;
 
 namespace BlobWriterService
 {
 
-    public interface IBlobWriterService : IService
-    {
-        Task<string> receiveMessageAsync(string message);
-    }
 
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
@@ -94,16 +86,16 @@ namespace BlobWriterService
             }
         }
 
-        public Task<string> receiveMessageAsync(string message)
+       
+
+        public Task<string> ReceiveMessageAsync(string message)
         {
-           
-            if(internalBlobQueue == null)
+            if (internalBlobQueue == null)
             {
                 internalBlobQueue = new Queue();
-            } 
+            }
             internalBlobQueue.Enqueue(message);
             return Task.FromResult(message);
-
         }
     }
 }

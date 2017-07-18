@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Microsoft.ServiceBus.Messaging;
+using System.IO;
 
 namespace AlarmService
 {
@@ -14,6 +16,10 @@ namespace AlarmService
     /// </summary>
     internal sealed class AlarmService : StatelessService
     {
+        public string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+        public string alarm; //received from DeviceActor
+        public string actor;
+
         public AlarmService(StatelessServiceContext context)
             : base(context)
         { }
@@ -36,16 +42,42 @@ namespace AlarmService
             // TODO: Replace the following sample code with your own logic 
             //       or remove this RunAsync override if it's not needed in your service.
 
-            long iterations = 0;
+            //long iterations = 0;
 
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                ServiceEventSource.Current.ServiceMessage(this.Context, "Working-{0}", ++iterations);
+                //ServiceEventSource.Current.ServiceMessage(this.Context, "Working-{0}", ++iterations);
+                if(alarm != null && actor != null)
+                {                   
+                    sendToTopic(alarm, actor);
+                }
 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
+        }
+
+        public void sendToTopic(string message, string deviceId)
+        {
+            var topicName = "sbalarmtopic";
+            var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
+
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(message);
+            writer.Flush();
+            stream.Position = 0;
+
+
+            var bm = new BrokeredMessage(stream)
+            {
+                Label = "ALARM from " + deviceId
+            };
+            //bm.Properties["timestamp"] = deviceMsg.TimeStamp;
+
+            client.Send(bm);
+
         }
     }
 }
