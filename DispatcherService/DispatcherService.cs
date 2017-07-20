@@ -20,6 +20,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using BlobWriterService;
 using BlobWriter.interfaces;
 using CommonResources;
+using System.Runtime.Serialization;
 
 namespace DispatcherService
 {
@@ -64,10 +65,7 @@ namespace DispatcherService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - running");
-
-            //IDispatcherService helloWorldClient = ServiceProxy.Create<IDispatcherService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-            //string message = await helloWorldClient.HelloWorldAsync();
-
+            
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -83,7 +81,7 @@ namespace DispatcherService
                     DateTime timestamp = message.EnqueuedTimeUtc;
 
                     var device = validateMessage(s, timestamp);
-                    string messageToBeSent = JsonConvert.SerializeObject(device);//ok???
+                    string messageToBeSent = Serialize(device);//ok???
 
                     var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
                     await proxyActor.UpdateDeviceState(device);//not implemented yet
@@ -100,33 +98,55 @@ namespace DispatcherService
 
             Device validateMessage(string messageString, DateTime ts)
             {
-                
-                Device returnDevice = new Device();
+                Device returnDevice;
+
                 var msg = JsonConvert.DeserializeObject(messageString);
                 JObject json = JObject.Parse(messageString);
-                
-                returnDevice.DeviceID = json["deviceId"].Value<string>();
+                var deviceID = json["deviceId"].Value<string>();
+
+                if(deviceID == "Batman")
+                {
+                    var batmanDevice = new Batman();
+
+                    batmanDevice.Humidity = json["humidity"].Value<double>();
+                    batmanDevice.Temperature = json["temperature"].Value<double>();
+                    returnDevice = batmanDevice;
+
+                } else if (deviceID == "Joker")
+                {
+                    var jokerDevice = new Joker();
+                    jokerDevice.Temperature = json["temperature"].Value<double>();
+                    jokerDevice.OpenDoor = json["doorOpen"].Value<bool>();
+                    returnDevice = jokerDevice;
+                }
+                else
+                {
+                    returnDevice = new Device();
+                }
+
+                returnDevice.DeviceID = deviceID;
                 returnDevice.MessageID = json["messageId"].Value<int>();
                 returnDevice.Timestamp = ts;
-                returnDevice.Temperature = json["temperature"].Value<double>();
 
 
-                if ( returnDevice.DeviceID == "Batman")
-                {
-                    returnDevice.Humidity = json["humidity"].Value<double>();
-                    returnDevice.OpenDoor = false;
-                     
-                } else if(returnDevice.DeviceID == "Joker")
-                {
-                    returnDevice.OpenDoor = json["doorOpen"].Value<bool>();
-                    returnDevice.Humidity = 0.0;
-                     
-                }
                 return returnDevice;
 
             }
 
-            
+            string Serialize(object obj)
+            {
+                using (MemoryStream memoryStream = new MemoryStream())
+                using (StreamReader reader = new StreamReader(memoryStream))
+                {
+                    DataContractSerializer serializer = new DataContractSerializer(obj.GetType());
+                    serializer.WriteObject(memoryStream, obj);
+                    memoryStream.Position = 0;
+                    return reader.ReadToEnd();
+                }
+            }
+
+
+
         }
     }
 }

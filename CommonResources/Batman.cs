@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CommonResources
 {
-    public class Batman
+    [DataContract]
+    public class Batman : Device
     {
-        public string MessageID { get; set; }
+        [DataMember]
         public double Temperature { get; set; }
+        [DataMember]
         public double Humidity { get; set; }
-        public DateTime Timestamp { get; set; }
+       
     }
 }

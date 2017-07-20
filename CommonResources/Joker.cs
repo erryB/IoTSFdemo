@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CommonResources
 {
-    class Joker
+    [DataContract]
+    public class Joker : Device
     {
-        public string MessageID { get; set; }
+        [DataMember]
         public double Temperature { get; set; }
+        [DataMember]
         public bool OpenDoor { get; set; }
-        public DateTime Timestamp { get; set; }
+        
     }
 }

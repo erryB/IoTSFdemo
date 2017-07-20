@@ -100,6 +100,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CommonResources\CommonResources.csproj">
+      <Project>{CFC3BCAE-EF2E-4C28-BC93-890F7082EA61}</Project>
+      <Name>CommonResources</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DeviceActor.Interfaces\DeviceActor.Interfaces.csproj">
       <Project>{3D7160D3-0254-433A-9BCA-8F4A5D2D9E93}</Project>
       <Name>DeviceActor.Interfaces</Name>

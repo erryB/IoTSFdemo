@@ -7,12 +7,13 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Actors.Client;
 using DeviceActor.Interfaces;
+using CommonResources;
 
 namespace DeviceActor
 {
     /// <remarks>
     /// This class represents an actor.
-    /// Every ActorID maps to an instance of this class.
+    /// Every ActorID maps to an instance of this class- n.
     /// The StatePersistence attribute determines persistence and replication of actor state:
     ///  - Persisted: State is written to disk and replicated.
     ///  - Volatile: State is kept in memory only and replicated.
@@ -33,8 +34,10 @@ namespace DeviceActor
         {
         }
 
-        public Task UpdateDeviceState(string message)
+        public Task UpdateDeviceState(Device currentDeviceMessage)
         {
+            
+
             
         }
 

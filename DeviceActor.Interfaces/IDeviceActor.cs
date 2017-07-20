@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Actors;
+using CommonResources;
 
 namespace DeviceActor.Interfaces
 {
@@ -26,6 +27,6 @@ namespace DeviceActor.Interfaces
         /// <returns></returns>
         Task SetCountAsync(int count, CancellationToken cancellationToken);
 
-        Task UpdateDeviceState(string message);
+        Task UpdateDeviceState(Device currentDeviceMessage);
     }
 }

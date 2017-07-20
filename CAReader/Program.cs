@@ -27,7 +27,7 @@ namespace CAReader
             {
                 Stream stream = message.GetBody<Stream>();
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
-                string s = reader.ReadToEndAsync();
+                string s = reader.ReadToEnd();
                 DateTime timestamp = message.EnqueuedTimeUtc;
 
                 deviceMsg = validateMessage(s, timestamp);

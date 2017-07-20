@@ -7,12 +7,16 @@ using System.Threading.Tasks;
 
 namespace CAReader
 {
-    [Serializable]
+    [DataContract]
     public class DeviceMsg 
     {
+        [DataMember]
         public string DeviceID { get; set; }
+        [DataMember]
         public int MsgID { get; set; }
+        [DataMember]
         public DateTime TimeStamp { get; set; }
+        [DataMember]
         public string Data { get; set; }
 
     }   
