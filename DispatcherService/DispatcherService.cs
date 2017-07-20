@@ -84,7 +84,7 @@ namespace DispatcherService
                     string messageToBeSent = Serialize(device);//ok???
 
                     var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
-                    await proxyActor.UpdateDeviceState(device);//not implemented yet
+                    await proxyActor.UpdateDeviceStateAsync(device);//not implemented yet
 
                     var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
                     await proxyBlob.ReceiveMessageAsync(messageToBeSent);

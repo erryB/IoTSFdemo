@@ -8,17 +8,18 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceBus.Messaging;
 using System.IO;
+using AlarmServiceInterfaces;
 
 namespace AlarmService
 {
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class AlarmService : StatelessService
+    internal sealed class AlarmService : StatelessService, IAlarmService
     {
         public string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         public string alarm; //received from DeviceActor
-        public string actor;
+        public string deviceID;
 
         public AlarmService(StatelessServiceContext context)
             : base(context)
@@ -49,10 +50,10 @@ namespace AlarmService
                 cancellationToken.ThrowIfCancellationRequested();
 
                 //ServiceEventSource.Current.ServiceMessage(this.Context, "Working-{0}", ++iterations);
-                if(alarm != null && actor != null)
-                {                   
-                    sendToTopic(alarm, actor);
-                }
+                //if(alarm != null && deviceID != null)
+                //{                   
+                //    sendToTopic(alarm, deviceID);
+                //}
 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
@@ -65,7 +66,7 @@ namespace AlarmService
 
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
-            writer.Write(message);
+            writer.WriteAsync(message);
             writer.Flush();
             stream.Position = 0;
 
@@ -74,10 +75,17 @@ namespace AlarmService
             {
                 Label = "ALARM from " + deviceId
             };
-            //bm.Properties["timestamp"] = deviceMsg.TimeStamp;
-
+            
             client.Send(bm);
 
+        }
+
+        public Task<string> ReceiveAlarmAsync(string alarmMessage, string device)
+        {
+            alarm = alarmMessage;
+            deviceID = device;
+            sendToTopic(alarm, deviceID);
+            return Task.FromResult(alarm);
         }
     }
 }

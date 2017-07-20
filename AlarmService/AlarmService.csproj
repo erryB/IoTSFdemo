@@ -90,6 +90,12 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AlarmServiceInterfaces\AlarmService.Interfaces.csproj">
+      <Project>{9470A8CB-A902-484D-9666-76B7EFB72FEE}</Project>
+      <Name>AlarmService.Interfaces</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

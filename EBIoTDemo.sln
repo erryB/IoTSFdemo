@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonResources", "CommonRe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlobWriter.Interfaces", "BlobWriter.interfaces\BlobWriter.Interfaces.csproj", "{B2B3831E-C9D0-463E-AB53-FF37AA8864BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlarmService.Interfaces", "AlarmServiceInterfaces\AlarmService.Interfaces.csproj", "{9470A8CB-A902-484D-9666-76B7EFB72FEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -173,6 +175,14 @@ Global
 		{B2B3831E-C9D0-463E-AB53-FF37AA8864BF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B2B3831E-C9D0-463E-AB53-FF37AA8864BF}.Release|x64.ActiveCfg = Release|Any CPU
 		{B2B3831E-C9D0-463E-AB53-FF37AA8864BF}.Release|x64.Build.0 = Release|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Debug|x64.Build.0 = Debug|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Release|x64.ActiveCfg = Release|Any CPU
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -186,6 +196,7 @@ Global
 		{18F5E658-CBFA-4466-B71B-E0CBA5CDD63C} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
 		{CFC3BCAE-EF2E-4C28-BC93-890F7082EA61} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
 		{B2B3831E-C9D0-463E-AB53-FF37AA8864BF} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
+		{9470A8CB-A902-484D-9666-76B7EFB72FEE} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8
