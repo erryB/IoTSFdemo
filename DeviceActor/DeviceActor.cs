@@ -28,9 +28,6 @@ namespace DeviceActor
         double humThreshold = 20.0;
         int OpenDoorToGenerateAlarm = 3;
         int HighTempToGenerateAlarm = 3;
-        //BatmanState prevBatmanState = new BatmanState();
-        //JokerState prevJokerState = new JokerState();
-
         
         /// <summary>
         /// Initializes a new instance of DeviceActor
