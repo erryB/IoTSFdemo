@@ -9,7 +9,7 @@ using System.Net.Mail;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AlarmGenerator
+namespace AlarmGenerator 
 {
     class Program
     {
