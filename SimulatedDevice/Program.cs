@@ -38,10 +38,10 @@ namespace SimulatedDeviceB
 
                 var telemetryDataPoint = new
                 {
-                    messageId = messageId++,
-                    deviceId = "Batman",
-                    temperature = currentTemperature,
-                    humidity = currentHumidity,
+                    MessageId = messageId++,
+                    DeviceId = "Batman",
+                    Temperature = currentTemperature,
+                    Humidity = currentHumidity,
                    
                 };
                 var messageString = JsonConvert.SerializeObject(telemetryDataPoint);

@@ -38,10 +38,10 @@ namespace SimulatedDeviceJ
 
                 var telemetryDataPoint = new
                 {
-                    messageId = messageId++,
-                    deviceId = "Joker",
-                    temperature = currentTemperature,
-                    doorOpen = currentlyOpen
+                    MessageId = messageId++,
+                    DeviceId = "Joker",
+                    Temperature = currentTemperature,
+                    OpenDoor = currentlyOpen
                     
                 };
                 var messageString = JsonConvert.SerializeObject(telemetryDataPoint);

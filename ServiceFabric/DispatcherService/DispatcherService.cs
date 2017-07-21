@@ -19,21 +19,16 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using BlobWriterService;
 using BlobWriter.interfaces;
-using CommonResources;
+
 using System.Runtime.Serialization;
 
 namespace DispatcherService
 {
-    //public interface IDispatcherService : IService
-    //{
-    //    Task<string> HelloWorldAsync();
-    //}
-
-
+    
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class DispatcherService : StatelessService /*IDispatcherService*/
+    internal sealed class DispatcherService : StatelessService 
     {
         public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         public string deviceID = null;
@@ -42,11 +37,7 @@ namespace DispatcherService
             : base(context)
         { }
 
-        //public Task<string> HelloWorldAsync()
-        //{
-        //    return Task.FromResult("Hello from DispatcherService!");
-        //}
-
+        
         /// <summary>
         /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
         /// </summary>
@@ -54,7 +45,7 @@ namespace DispatcherService
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
             return new ServiceInstanceListener[0];
-            //return new[] { new ServiceInstanceListener(context => this.CreateServiceRemotingListener(context)) };
+            
         }
         
 
@@ -80,14 +71,17 @@ namespace DispatcherService
                     string s = await reader.ReadToEndAsync();
                     DateTime timestamp = message.EnqueuedTimeUtc;
 
-                    var device = validateMessage(s, timestamp);
-                    string messageToBeSent = Serialize(device);//ok???
-
-                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
-                    await proxyActor.UpdateDeviceStateAsync(device);//not implemented yet
+                    var deviceMsg = new DeviceMessage(s, timestamp);
+                    
+                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(), new Uri("fabric:/EBIoTApplication/DeviceActor"));
+                    //await proxyActor.UpdateDeviceStateAsync(device);//not implemented yet
 
                     var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-                    await proxyBlob.ReceiveMessageAsync(messageToBeSent);
+                    //await proxyBlob.ReceiveMessageAsync(messageToBeSent);
+
+                    //parallel execution of 2 independent tasks
+                    await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(device), proxyBlob.ReceiveMessageAsync(device));
+
 
                 });
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
@@ -96,54 +90,9 @@ namespace DispatcherService
 
             }
 
-            Device validateMessage(string messageString, DateTime ts)
-            {
-                Device returnDevice;
+            
 
-                var msg = JsonConvert.DeserializeObject(messageString);
-                JObject json = JObject.Parse(messageString);
-                var deviceID = json["deviceId"].Value<string>();
-
-                if(deviceID == "Batman")
-                {
-                    var batmanDevice = new Batman();
-
-                    batmanDevice.Humidity = json["humidity"].Value<double>();
-                    batmanDevice.Temperature = json["temperature"].Value<double>();
-                    returnDevice = batmanDevice;
-
-                } else if (deviceID == "Joker")
-                {
-                    var jokerDevice = new Joker();
-                    jokerDevice.Temperature = json["temperature"].Value<double>();
-                    jokerDevice.OpenDoor = json["doorOpen"].Value<bool>();
-                    returnDevice = jokerDevice;
-                }
-                else
-                {
-                    returnDevice = new Device();
-                }
-
-                returnDevice.DeviceID = deviceID;
-                returnDevice.MessageID = json["messageId"].Value<int>();
-                returnDevice.Timestamp = ts;
-
-
-                return returnDevice;
-
-            }
-
-            string Serialize(object obj)
-            {
-                using (MemoryStream memoryStream = new MemoryStream())
-                using (StreamReader reader = new StreamReader(memoryStream))
-                {
-                    DataContractSerializer serializer = new DataContractSerializer(obj.GetType());
-                    serializer.WriteObject(memoryStream, obj);
-                    memoryStream.Position = 0;
-                    return reader.ReadToEnd();
-                }
-            }
+            
 
 
 

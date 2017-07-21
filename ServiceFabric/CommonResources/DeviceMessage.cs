@@ -1,0 +1,62 @@
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CommonResources
+{
+    [DataContract]
+    public class DeviceMessage
+    {
+        [DataMember]
+        public string DeviceID { get; set; }
+        [DataMember]
+        public int MessageID { get; set; }
+        [DataMember]
+        public DateTime Timestamp { get; set; }
+        [DataMember]
+        public string MessageType { get; }
+        [DataMember]
+        public Dictionary<string, string> MessageData { get; set; }
+
+        public DeviceMessage(string messageString, DateTime timestamp)
+        {
+            this.MessageData = new Dictionary<string, string>();
+
+            var msg = JsonConvert.DeserializeObject(messageString);
+            JObject json = JObject.Parse(messageString);
+            try
+            {
+                this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
+                this.MessageID = json[MessagePropertyName.MessageID].Value<int>();
+                this.Timestamp = timestamp;
+                if(messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.Humidity))
+                {
+                    this.MessageType = MessagePropertyName.TempHumType;
+                    this.MessageData.Add(MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString());
+                    this.MessageData.Add(MessagePropertyName.Humidity, json[MessagePropertyName.Humidity].Value<double>().ToString());
+
+                } else if (messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.OpenDoor))
+                {
+                    this.MessageType = MessagePropertyName.TempOpenDoorType;
+                    this.MessageData.Add(MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString());
+                    this.MessageData.Add(MessagePropertyName.OpenDoor, json[MessagePropertyName.OpenDoor].Value<bool>().ToString());
+                } else
+                {
+                    this.MessageType = MessagePropertyName.UnknownType;
+                }
+
+            } catch (Exception e)
+            {
+                this.DeviceID = "MESSAGE ERROR";
+            }
+          
+        }
+
+
+    }
+}
