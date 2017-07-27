@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlarmParameters.cs" />
     <Compile Include="Batman.cs" />
     <Compile Include="BatmanState.cs" />
     <Compile Include="Device.cs" />

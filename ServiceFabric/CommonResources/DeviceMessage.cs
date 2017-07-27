@@ -53,8 +53,31 @@ namespace CommonResources
             } catch (Exception e)
             {
                 this.DeviceID = "MESSAGE ERROR";
+                this.MessageType = MessagePropertyName.UnknownType;
             }
           
+        }
+
+        public string toString()
+        {
+            string result = $"Message received from {DeviceID}, Timestamp {Timestamp}, Message Type: {MessageType}, Message ID: {MessageID}";
+
+            if (this.MessageType == MessagePropertyName.TempHumType)
+            {
+                result += $" Temperature: {MessageData[MessagePropertyName.Temperature]}, Humidity: {MessageData[MessagePropertyName.Humidity]}";
+            }
+            else if (MessageType == MessagePropertyName.TempOpenDoorType)
+            {
+                result += $" Temperature: {MessageData[MessagePropertyName.Temperature]}, Open Door: {MessageData[MessagePropertyName.OpenDoor]}";
+            }
+            else //unknown message type   
+            {
+                return DeviceID;
+            }
+
+            return result;
+                
+
         }
 
 

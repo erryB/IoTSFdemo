@@ -21,6 +21,7 @@ using BlobWriterService;
 using BlobWriter.interfaces;
 
 using System.Runtime.Serialization;
+using CommonResources;
 
 namespace DispatcherService
 {
@@ -73,14 +74,11 @@ namespace DispatcherService
 
                     var deviceMsg = new DeviceMessage(s, timestamp);
                     
-                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(), new Uri("fabric:/EBIoTApplication/DeviceActor"));
-                    //await proxyActor.UpdateDeviceStateAsync(device);//not implemented yet
-
+                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
                     var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-                    //await proxyBlob.ReceiveMessageAsync(messageToBeSent);
 
                     //parallel execution of 2 independent tasks
-                    await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(device), proxyBlob.ReceiveMessageAsync(device));
+                    await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg), proxyBlob.ReceiveMessageAsync(deviceMsg));
 
 
                 });

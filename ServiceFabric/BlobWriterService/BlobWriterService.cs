@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using System.Collections;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using BlobWriter.interfaces;
+using CommonResources;
 
 namespace BlobWriterService
 {
@@ -68,8 +69,8 @@ namespace BlobWriterService
             
             internalBlobQueue = new Queue();
 
-            CreateBlob("ebcontainer", "receivedData.json");
-            string currentMsg = null;
+            CreateBlob("ebcontainer", "loggingData.txt");
+            DeviceMessage currentMsg = null;
             
             while (true)
             {
@@ -77,9 +78,9 @@ namespace BlobWriterService
 
                 if(internalBlobQueue.Count != 0)
                 {
-                    currentMsg = (string) internalBlobQueue.Dequeue();
-                    appendBlob.AppendText(currentMsg + "\n");
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
+                    currentMsg = (DeviceMessage) internalBlobQueue.Dequeue();
+                    appendBlob.AppendText(currentMsg.toString() + "\n");
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg.toString());
                 }
                 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
@@ -88,14 +89,14 @@ namespace BlobWriterService
 
        
 
-        public Task<string> ReceiveMessageAsync(string message)
+        public Task ReceiveMessageAsync(DeviceMessage message)
         {
             if (internalBlobQueue == null)
             {
                 internalBlobQueue = new Queue();
             }
             internalBlobQueue.Enqueue(message);
-            return Task.FromResult(message);
+            return Task.FromResult(message.toString());
         }
     }
 }
