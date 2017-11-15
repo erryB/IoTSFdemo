@@ -89,7 +89,10 @@ namespace BlobWriterService
 
        
 
-        public Task ReceiveMessageAsync(DeviceMessage message)
+        
+        
+
+        Task<string> IBlobWriterService.ReceiveMessageAsync(DeviceMessage message)
         {
             if (internalBlobQueue == null)
             {

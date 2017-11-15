@@ -27,6 +27,6 @@ namespace DeviceActor.Interfaces
         /// <returns></returns>
         Task SetCountAsync(int count, CancellationToken cancellationToken);
 
-        Task UpdateDeviceStateAsync(DeviceMessage currentDeviceMessage);
+        Task UpdateDeviceStateAsync(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken);
     }
 }

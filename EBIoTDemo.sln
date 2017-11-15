@@ -45,6 +45,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewStateCalculator", "Class
 EndProject
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "EBIoTApplication", "ServiceFabric\EBIoTApplication\EBIoTApplication.sfproj", "{3C90E5E3-6602-4F7B-9AF9-138EC8398EF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlarmWriterService", "ServiceFabric\AlarmWriterService\AlarmWriterService.csproj", "{725B20CE-E67E-4B18-A7C6-BC3F583AA607}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlarmWriterService.Interfaces", "ServiceFabric\AlarmWriterService.interface\AlarmWriterService.Interfaces.csproj", "{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -187,6 +191,20 @@ Global
 		{3C90E5E3-6602-4F7B-9AF9-138EC8398EF1}.Release|x64.ActiveCfg = Release|x64
 		{3C90E5E3-6602-4F7B-9AF9-138EC8398EF1}.Release|x64.Build.0 = Release|x64
 		{3C90E5E3-6602-4F7B-9AF9-138EC8398EF1}.Release|x64.Deploy.0 = Release|x64
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607}.Debug|x64.ActiveCfg = Debug|x64
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607}.Debug|x64.Build.0 = Debug|x64
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607}.Release|Any CPU.ActiveCfg = Release|x64
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607}.Release|x64.ActiveCfg = Release|x64
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607}.Release|x64.Build.0 = Release|x64
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Debug|x64.Build.0 = Debug|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Release|x64.ActiveCfg = Release|Any CPU
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,6 +226,8 @@ Global
 		{BC2B5B0A-5CE2-4286-8555-E919C0E1A67B} = {20A51EB4-C2BE-472D-9DBE-FAC158CE91D5}
 		{5F4F8CB4-A098-48D5-A10F-07C626A1EA55} = {20A51EB4-C2BE-472D-9DBE-FAC158CE91D5}
 		{3C90E5E3-6602-4F7B-9AF9-138EC8398EF1} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
+		{725B20CE-E67E-4B18-A7C6-BC3F583AA607} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
+		{76F0FF53-4469-4324-A7FC-839BE7FBDBBD} = {45F5EC08-F431-49DB-9847-B1BBC58B316E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8

@@ -34,6 +34,8 @@ namespace CommonResources
                 this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
                 this.MessageID = json[MessagePropertyName.MessageID].Value<int>();
                 this.Timestamp = timestamp;
+
+                //MessageType is different for Batman and Joker devices 
                 if(messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.Humidity))
                 {
                     this.MessageType = MessagePropertyName.TempHumType;
