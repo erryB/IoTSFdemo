@@ -44,7 +44,7 @@ namespace AlarmWriterService
             //update the state???
         }
 
-        public Task SendToTopic(string alarmMessage, string topicName, CancellationToken cancellationToken)
+        public async Task SendToTopic(string alarmMessage, string topicName, CancellationToken cancellationToken)
         {
             var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
 
@@ -60,7 +60,7 @@ namespace AlarmWriterService
                 Label = "ALARM MESSAGE"
             };
             
-            client.Send(bm);
+            await client.SendAsync(bm);
 
         }
 
@@ -112,7 +112,7 @@ namespace AlarmWriterService
                     //debug print
                     ServiceEventSource.Current.ServiceMessage(this.Context, line);
 
-                    SendToTopic(line, topicName, cancellationToken);
+                    await SendToTopic(line, topicName, cancellationToken);
 
                     //update the state???
                 }
