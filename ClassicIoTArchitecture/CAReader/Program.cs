@@ -30,10 +30,10 @@ namespace CAReader
                 string s = reader.ReadToEnd();
                 DateTime timestamp = message.EnqueuedTimeUtc;
 
-                deviceMsg = validateMessage(s, timestamp);
+                deviceMsg = ValidateMessage(s, timestamp);
                 Console.WriteLine(String.Format("validated message: {0}, timestamp {1}", s, timestamp));
 
-                sendToTopic();
+                SendToTopic();
                 Console.WriteLine(String.Format("message sent to Topic2\n"));
                 
             });
@@ -41,22 +41,23 @@ namespace CAReader
             Console.ReadLine();
         }
 
-        public static DeviceMsg validateMessage(string messageString, DateTime timestamp)
+        public static DeviceMsg ValidateMessage(string messageString, DateTime timestamp)
         {
             var msg = JsonConvert.DeserializeObject(messageString);
             JObject json = JObject.Parse(messageString);
 
-            DeviceMsg deviceMsg = new DeviceMsg();
-
-            deviceMsg.DeviceID = json["deviceId"].Value<string>();
-            deviceMsg.MsgID = json["messageId"].Value<int>();
-            deviceMsg.TimeStamp = timestamp;
-            deviceMsg.Data = messageString;
+            DeviceMsg deviceMsg = new DeviceMsg
+            {
+                DeviceID = json["deviceId"].Value<string>(),
+                MsgID = json["messageId"].Value<int>(),
+                TimeStamp = timestamp,
+                Data = messageString
+            };
 
             return deviceMsg;
         }
 
-        public static void sendToTopic()//sendToActor
+        public static void SendToTopic()
         {
             var topicName = "sbtopic2";
             var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
@@ -78,13 +79,6 @@ namespace CAReader
             
         }
 
-        public static void sendToBlobWriter()
-        {
-
-        }
-        public static void sendToNewStateCalculator()
-        {
-
-        }
+     
     }
 }

@@ -40,16 +40,16 @@ namespace NewStateCalculator
                 JObject json = JObject.Parse(s);
                 if (json["deviceId"].Value<string>() == "Batman")
                 {
-                    updateBatmanState(json);
+                    UpdateBatmanState(json);
                     var state = JsonConvert.SerializeObject(prevBatmanState);
-                    sendToQueue(state, "Batman");
+                    SendToQueue(state, "Batman");
                     Console.WriteLine("message from Batman sent to Q3: {0}", state);
                 }
                 else if (json["deviceId"].Value<string>() == "Joker")
                 {
-                    updateJokerState(json);
+                    UpdateJokerState(json);
                     var state = JsonConvert.SerializeObject(prevBatmanState);
-                    sendToQueue(state, "Joker");
+                    SendToQueue(state, "Joker");
                     Console.WriteLine("message from Joker sent to Q3: {0}", state);
 
                 }
@@ -59,13 +59,15 @@ namespace NewStateCalculator
             
         }
 
-        public static void updateBatmanState(JObject json)
+        public static void UpdateBatmanState(JObject json)
         {
-            BatmanState currentBatmanState = new BatmanState();
-            currentBatmanState.DeviceID = "Batman";
-            currentBatmanState.Temperature = json["temperature"].Value<double>();
-            currentBatmanState.Humidity = json["humidity"].Value<double>();
-            
+            BatmanState currentBatmanState = new BatmanState
+            {
+                DeviceID = "Batman",
+                Temperature = json["temperature"].Value<double>(),
+                Humidity = json["humidity"].Value<double>()
+            };
+
             if (currentBatmanState.Temperature >= prevBatmanState.Temperature)
             {
                 currentBatmanState.CountTempIncreasing = prevBatmanState.CountTempIncreasing+1;
@@ -86,14 +88,16 @@ namespace NewStateCalculator
             prevBatmanState = currentBatmanState;
         }
 
-        public static void updateJokerState(JObject json)
+        public static void UpdateJokerState(JObject json)
         {
-            JokerState currentJokerState = new JokerState();
-            currentJokerState.DeviceID = "Joker";
+            JokerState currentJokerState = new JokerState
+            {
+                DeviceID = "Joker",
 
-            currentJokerState.Temperature = json["temperature"].Value<double>();
-            currentJokerState.IsOpen = json["temperature"].Value<bool>();
-            
+                Temperature = json["temperature"].Value<double>(),
+                IsOpen = json["temperature"].Value<bool>()
+            };
+
             if (currentJokerState.Temperature >= prevJokerState.Temperature)
             {
                 currentJokerState.TempIncreasingCount = prevJokerState.TempIncreasingCount+1;
@@ -115,7 +119,7 @@ namespace NewStateCalculator
 
         }
 
-        public static void sendToQueue(string state, string deviceID)
+        public static void SendToQueue(string state, string deviceID)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);

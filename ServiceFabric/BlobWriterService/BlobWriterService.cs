@@ -38,7 +38,7 @@ namespace BlobWriterService
         }
 
 
-        public void CreateBlob(string containerName, string blobName)
+        public async Task CreateBlob(string containerName, string blobName)
         {
             //Parse the connection string for the storage account.
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Microsoft.Azure.CloudConfigurationManager.GetSetting("StorageConnectionString"));
@@ -57,7 +57,7 @@ namespace BlobWriterService
 
             //Create the append blob. Note that if the blob already exists, the CreateOrReplace() method will overwrite it.
             //You can check whether the blob exists to avoid overwriting it by using CloudAppendBlob.Exists().
-            appendBlob.CreateOrReplace();
+            await appendBlob.CreateOrReplaceAsync();
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace BlobWriterService
             
             internalBlobQueue = new Queue();
 
-            CreateBlob("ebcontainer", "loggingData.txt");
+            await CreateBlob("ebcontainer", "loggingData.txt");
             DeviceMessage currentMsg = null;
             
             while (true)
@@ -88,18 +88,16 @@ namespace BlobWriterService
         }
 
        
-
-        
-        
-
-        Task<string> IBlobWriterService.ReceiveMessageAsync(DeviceMessage message)
+        public void ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken)
         {
             if (internalBlobQueue == null)
             {
                 internalBlobQueue = new Queue();
             }
             internalBlobQueue.Enqueue(message);
-            return Task.FromResult(message.toString());
+            
+            //use this to return a Task<string>. Is it necessary? 
+            //return Task.FromResult(true);
         }
     }
 }

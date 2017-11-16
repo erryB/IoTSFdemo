@@ -1,6 +1,7 @@
 ﻿
 using CommonResources;
 using Microsoft.ServiceFabric.Services.Remoting;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlobWriter.interfaces
@@ -8,7 +9,7 @@ namespace BlobWriter.interfaces
     public interface IBlobWriterService : IService
     {
         
-        Task<string> ReceiveMessageAsync(DeviceMessage message);
+        void ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken);
         
     }
 }

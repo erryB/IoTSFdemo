@@ -202,25 +202,25 @@ namespace DeviceActor
             return this.StateManager.TryAddStateAsync("count", 0);
         }
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <returns></returns>
-        Task<int> IDeviceActor.GetCountAsync(CancellationToken cancellationToken)
-        {
-            return this.StateManager.GetStateAsync<int>("count", cancellationToken);
-        }
+        ///// <summary>
+        ///// TODO: Replace with your own actor method.
+        ///// </summary>
+        ///// <returns></returns>
+        //Task<int> IDeviceActor.GetCountAsync(CancellationToken cancellationToken)
+        //{
+        //    return this.StateManager.GetStateAsync<int>("count", cancellationToken);
+        //}
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task IDeviceActor.SetCountAsync(int count, CancellationToken cancellationToken)
-        {
-            // Requests are not guaranteed to be processed in order nor at most once.
-            // The update function here verifies that the incoming count is greater than the current count to preserve order.
-            return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
-        }
+        ///// <summary>
+        ///// TODO: Replace with your own actor method.
+        ///// </summary>
+        ///// <param name="count"></param>
+        ///// <returns></returns>
+        //Task IDeviceActor.SetCountAsync(int count, CancellationToken cancellationToken)
+        //{
+        //    // Requests are not guaranteed to be processed in order nor at most once.
+        //    // The update function here verifies that the incoming count is greater than the current count to preserve order.
+        //    return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
+        //}
     }
 }

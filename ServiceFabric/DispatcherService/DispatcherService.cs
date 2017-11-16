@@ -78,7 +78,7 @@ namespace DispatcherService
                     var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
 
                     //parallel execution of 2 independent tasks
-                    await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg), proxyBlob.ReceiveMessageAsync(deviceMsg));
+                    await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
 
 
                 });

@@ -14,18 +14,18 @@ namespace DeviceActor.Interfaces
     /// </summary>
     public interface IDeviceActor : IActor
     {
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <returns></returns>
-        Task<int> GetCountAsync(CancellationToken cancellationToken);
+        ///// <summary>
+        ///// TODO: Replace with your own actor method.
+        ///// </summary>
+        ///// <returns></returns>
+        //Task<int> GetCountAsync(CancellationToken cancellationToken);
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task SetCountAsync(int count, CancellationToken cancellationToken);
+        ///// <summary>
+        ///// TODO: Replace with your own actor method.
+        ///// </summary>
+        ///// <param name="count"></param>
+        ///// <returns></returns>
+        //Task SetCountAsync(int count, CancellationToken cancellationToken);
 
         Task UpdateDeviceStateAsync(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken);
     }
