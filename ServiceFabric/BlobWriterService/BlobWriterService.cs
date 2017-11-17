@@ -88,7 +88,7 @@ namespace BlobWriterService
         }
 
        
-        public void ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken)
+        public Task ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken)
         {
             if (internalBlobQueue == null)
             {
@@ -96,8 +96,7 @@ namespace BlobWriterService
             }
             internalBlobQueue.Enqueue(message);
             
-            //use this to return a Task<string>. Is it necessary? 
-            //return Task.FromResult(true);
+            return Task.Delay(0);
         }
     }
 }

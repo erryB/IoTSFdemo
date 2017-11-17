@@ -12,6 +12,7 @@ using Microsoft.ServiceBus.Messaging;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.ServiceFabric.Data;
 
 namespace AlarmWriterService
 {
@@ -23,7 +24,7 @@ namespace AlarmWriterService
 
         IReliableQueue<string> ReliableQueue;
         string sbConnectionString;
-        string topicName; 
+        string topicName;
 
         public AlarmWriterService(StatefulServiceContext context)
             : base(context)
@@ -31,8 +32,6 @@ namespace AlarmWriterService
 
         public async Task SendAlarmAsync(string alarmMessage, CancellationToken cancellationToken)
         {
-            ReliableQueue = await this.StateManager.GetOrAddAsync<IReliableQueue<string>>("myReliableQueue");
-
             //enqueue current alarm message to ReliableQueue, timeout 5 sec
             using (var tx = this.StateManager.CreateTransaction())
             {
@@ -40,8 +39,7 @@ namespace AlarmWriterService
                 await ReliableQueue.EnqueueAsync(tx, alarmMessage, timeout, cancellationToken);
                 await tx.CommitAsync();
             }
-            
-            //update the state???
+
         }
 
         public async Task SendToTopic(string alarmMessage, string topicName, CancellationToken cancellationToken)
@@ -59,7 +57,7 @@ namespace AlarmWriterService
             {
                 Label = "ALARM MESSAGE"
             };
-            
+
             await client.SendAsync(bm);
 
         }
@@ -83,7 +81,7 @@ namespace AlarmWriterService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            
+
             ReliableQueue = await this.StateManager.GetOrAddAsync<IReliableQueue<string>>("myReliableQueue");
             sbConnectionString = "59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
             topicName = "sbalarmtopic";
@@ -91,17 +89,16 @@ namespace AlarmWriterService
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                ConditionalValue<string> itemFromQueue; //diventa alarm message
 
                 using (var tx = this.StateManager.CreateTransaction())
                 {
-                    var itemFromQueue = await ReliableQueue.TryDequeueAsync(tx).ConfigureAwait(false);
-                    if(!itemFromQueue.HasValue)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
-                        continue;
-                    }
-                    
-                    JObject json = JObject.Parse(itemFromQueue.Value);                    
+                    itemFromQueue = await ReliableQueue.TryPeekAsync(tx);
+                }
+                if (itemFromQueue.HasValue)
+                {
+                    //avrò alarmMessage
+                    JObject json = JObject.Parse(itemFromQueue.Value);
                     var deviceID = json["DeviceID"].Value<string>();
                     var msgID = json["MessageID"].Value<int>();
                     var timestamp = json["Timestamp"].Value<DateTime>();
@@ -114,14 +111,18 @@ namespace AlarmWriterService
 
                     await SendToTopic(line, topicName, cancellationToken);
 
-                    //update the state???
-                }
+                    using (var tx = this.StateManager.CreateTransaction())
+                    {
+                        itemFromQueue = await ReliableQueue.TryDequeueAsync(tx);
+                    }
 
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                }
+                
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
 
-            
-            
+
+
         }
     }
 }

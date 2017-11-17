@@ -9,7 +9,7 @@ namespace BlobWriter.interfaces
     public interface IBlobWriterService : IService
     {
         
-        void ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken);
+        Task ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken);
         
     }
 }
