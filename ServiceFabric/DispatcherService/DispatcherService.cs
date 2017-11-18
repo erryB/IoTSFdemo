@@ -82,18 +82,8 @@ namespace DispatcherService
 
 
                 });
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-
-
-
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
-
-            
-
-            
-
-
-
         }
     }
 }

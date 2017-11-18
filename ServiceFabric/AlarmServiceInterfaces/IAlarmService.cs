@@ -10,6 +10,6 @@ namespace AlarmServiceInterfaces
 {
     public interface IAlarmService : IService
     {
-        Task<string> ReceiveAlarmAsync(string alarmMessage, string device);
+        Task ReceiveAlarmAsync(string alarmMessage, string device);
     }
 }

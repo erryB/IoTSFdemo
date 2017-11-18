@@ -19,7 +19,7 @@ namespace CommonResources
         [DataMember]
         public DateTime Timestamp { get; set; }
         [DataMember]
-        public string MessageType { get; }
+        public string MessageType { get; set; }
         [DataMember]
         public Dictionary<string, string> MessageData { get; set; }
 
@@ -36,31 +36,34 @@ namespace CommonResources
                 this.Timestamp = timestamp;
 
                 //MessageType is different for Batman and Joker devices 
-                if(messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.Humidity))
+                if (messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.Humidity))
                 {
                     this.MessageType = MessagePropertyName.TempHumType;
                     this.MessageData.Add(MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString());
                     this.MessageData.Add(MessagePropertyName.Humidity, json[MessagePropertyName.Humidity].Value<double>().ToString());
 
-                } else if (messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.OpenDoor))
+                }
+                else if (messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.OpenDoor))
                 {
                     this.MessageType = MessagePropertyName.TempOpenDoorType;
                     this.MessageData.Add(MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString());
                     this.MessageData.Add(MessagePropertyName.OpenDoor, json[MessagePropertyName.OpenDoor].Value<bool>().ToString());
-                } else
+                }
+                else
                 {
                     this.MessageType = MessagePropertyName.UnknownType;
                 }
 
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 this.DeviceID = "MESSAGE ERROR";
                 this.MessageType = MessagePropertyName.UnknownType;
             }
-          
+
         }
 
-        public string toString()
+        public override string ToString()
         {
             string result = $"Message received from {DeviceID}, Timestamp {Timestamp}, Message Type: {MessageType}, Message ID: {MessageID}";
 
@@ -78,7 +81,7 @@ namespace CommonResources
             }
 
             return result;
-                
+
 
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,9 +18,8 @@ namespace AlarmService
     /// </summary>
     internal sealed class AlarmService : StatelessService, IAlarmService
     {
-        public string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-        public string alarm; //received from DeviceActor
-        public string deviceID;
+        private string sbConnectionString;
+        private string topicName;
 
         public AlarmService(StatelessServiceContext context)
             : base(context)
@@ -40,28 +40,35 @@ namespace AlarmService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
+            this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
+            this.ReadSettings();
 
-            //long iterations = 0;
-
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                //ServiceEventSource.Current.ServiceMessage(this.Context, "Working-{0}", ++iterations);
-                //if(alarm != null && deviceID != null)
-                //{                   
-                //    sendToTopic(alarm, deviceID);
-                //}
-
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
+
+            this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent -= CodePackageActivationContext_ConfigurationPackageModifiedEvent;
         }
 
-        public void sendToTopic(string message, string deviceId)
+        private void ReadSettings()
         {
-            var topicName = "sbalarmtopic";
+            ConfigurationSettings settingsFile = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings;
+
+            ConfigurationSection configSection = settingsFile.Sections["Connections"];
+
+            this.sbConnectionString = configSection.Parameters["ServiceBusConnectionString"].Value;
+            this.topicName = configSection.Parameters["ServiceBusTopicName"].Value;
+        }
+
+        private void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
+        {
+            this.ReadSettings();
+        }
+
+        public Task SendToTopicAsync(string message, string deviceId)
+        {
+
             var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
 
             MemoryStream stream = new MemoryStream();
@@ -75,17 +82,14 @@ namespace AlarmService
             {
                 Label = "ALARM from " + deviceId
             };
-            
-            client.Send(bm);
+
+            return client.SendAsync(bm);
 
         }
 
-        public Task<string> ReceiveAlarmAsync(string alarmMessage, string device)
+        public Task ReceiveAlarmAsync(string alarmMessage, string device)
         {
-            alarm = alarmMessage;
-            deviceID = device;
-            sendToTopic(alarm, deviceID);
-            return Task.FromResult(alarm);
+            return SendToTopicAsync(alarmMessage, device);
         }
     }
 }

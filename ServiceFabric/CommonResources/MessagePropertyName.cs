@@ -8,11 +8,11 @@ namespace CommonResources
 {
     public static class MessagePropertyName
     {
-        public static string DeviceID = "DeviceID";
-        public static string MessageID = "MessageID";
-        public static string Temperature = "Temperature";
-        public static string Humidity = "Humidity";
-        public static string OpenDoor = "OpenDoor";
+        public static string DeviceID = "deviceID";
+        public static string MessageID = "messageID";
+        public static string Temperature = "temperature";
+        public static string Humidity = "humidity";
+        public static string OpenDoor = "openDoor";
 
         public static string TempHumType = "TempHumType";
         public static string TempOpenDoorType = "TempOpenDoorType";

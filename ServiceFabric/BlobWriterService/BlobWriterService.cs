@@ -79,8 +79,8 @@ namespace BlobWriterService
                 if(internalBlobQueue.Count != 0)
                 {
                     currentMsg = (DeviceMessage) internalBlobQueue.Dequeue();
-                    appendBlob.AppendText(currentMsg.toString() + "\n");
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg.toString());
+                    appendBlob.AppendText(currentMsg + "\n");
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
                 }
                 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
@@ -96,7 +96,7 @@ namespace BlobWriterService
             }
             internalBlobQueue.Enqueue(message);
             
-            return Task.Delay(0);
+            return Task.Delay(0,cancellationToken);
         }
     }
 }
