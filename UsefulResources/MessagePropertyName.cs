@@ -13,6 +13,10 @@ namespace UsefulResources
         public static string Temperature = "Temperature";
         public static string Humidity = "Humidity";
         public static string OpenDoor = "OpenDoor";
+        public static string MessageType = "MessageType";
+        public static string Timestamp = "Timestamp";
+        public static string MessageData = "MessageData";
+
 
         public static string TempHumType = "TempHumType";
         public static string TempOpenDoorType = "TempOpenDoorType";

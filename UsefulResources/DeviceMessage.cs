@@ -23,7 +23,53 @@ namespace UsefulResources
         [DataMember]
         public Dictionary<string, string> MessageData { get; set; }
 
+        //create a DeviceMessage from a string that already contains MessageType and all the fields (previously formatted)
+        public DeviceMessage(string messageString)
+        {
+            var msg = JsonConvert.DeserializeObject(messageString);
+            JObject json = JObject.Parse(messageString);
 
+            if (messageString.Contains(MessagePropertyName.MessageType))
+            {
+                this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
+                this.MessageID = Int32.Parse(json[MessagePropertyName.MessageID].Value<string>());
+                this.Timestamp = DateTime.Parse(json[MessagePropertyName.Timestamp].Value<string>());
+                this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
+
+                //how to assign to dictionary??
+                if (this.MessageData == null)
+                {
+                    if (this.MessageType == MessagePropertyName.TempHumType)
+                    {
+                        this.MessageData = new Dictionary<string, string>
+                        {
+                            { MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString() },
+                            { MessagePropertyName.Humidity, json[MessagePropertyName.Humidity].Value<double>().ToString() }
+                        };
+
+                    }
+                    else if (this.MessageType == MessagePropertyName.TempOpenDoorType)
+                    {
+                        this.MessageData = new Dictionary<string, string>
+                        {
+                            { MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString() },
+                            { MessagePropertyName.OpenDoor, json[MessagePropertyName.OpenDoor].Value<double>().ToString() }
+                        };
+                    } else
+                    {
+                        this.MessageData = new Dictionary<string, string>();
+                    }
+                }
+
+
+            }
+            else
+            {
+                new DeviceMessage(messageString, DateTime.Now);
+            }
+        }
+
+        //create a DeviceMessage from a string with no MessageType 
         public DeviceMessage(string messageString, DateTime timestamp)
         {
 
