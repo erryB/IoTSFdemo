@@ -29,7 +29,7 @@ namespace SimulatedDeviceJ
         {
             double minTemperature = 20;
             //bool doorOpen = false;
-            int messageId = 1;
+            int MessageID = 1;
             Random rand = new Random();
 
             while (true)
@@ -43,8 +43,8 @@ namespace SimulatedDeviceJ
                     //then send a "critical message"
                     telemetryDataPoint = new
                     {
-                        MessageId = messageId++,
-                        DeviceId = DeviceID,
+                        MessageID = MessageID++,
+                        DeviceID = DeviceID,
                         Message = "WARNING - Low Battery"
                     };
                     level = "critical";
@@ -56,15 +56,15 @@ namespace SimulatedDeviceJ
 
                     telemetryDataPoint = new
                     {
-                        MessageId = messageId++,
-                        DeviceId = DeviceID,
+                        MessageID = MessageID++,
+                        DeviceID = DeviceID,
                         Temperature = currentTemperature,
                         OpenDoor = currentlyOpen
 
                     };
                     level = "normal";
                 }
-                
+
                 var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
                 var message = new Message(Encoding.ASCII.GetBytes(messageString));
                 message.Properties.Add("level", level);

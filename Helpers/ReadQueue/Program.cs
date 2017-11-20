@@ -25,8 +25,8 @@ namespace ReadQueue
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
                 string s = reader.ReadToEnd();
                 Console.WriteLine(String.Format("Message Label {0},\n body: {1}", message.Label, s));
-                
-                
+
+
             });
 
             Console.ReadLine();
