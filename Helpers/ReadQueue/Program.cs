@@ -10,13 +10,14 @@ namespace ReadQueue
 {
     class Program
     {
+        static string queueName = "sbqueue1";
+        static string connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=iothubroutes_EBIoTHubDemo;SharedAccessKey=kesA6tP8p7LkWsiDCoYSRsEgxSvcx07LYZJLoLiwQLk=;EntityPath=sbqueue1";
+
         static void Main(string[] args)
         {
-            Console.WriteLine("Read Q3. Ctrl-C to exit.\n");
-            var connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-            var queueName = "sbqueue3";
+            Console.WriteLine($"Reading {queueName}. Ctrl-C to exit.\n");
 
-            var client = QueueClient.CreateFromConnectionString(connectionString, queueName);
+            var client = QueueClient.CreateFromConnectionString(connectionString);
 
             client.OnMessage(message =>
             {

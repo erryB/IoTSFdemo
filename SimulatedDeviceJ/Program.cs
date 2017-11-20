@@ -14,10 +14,12 @@ namespace SimulatedDeviceJ
         static string iotHubUri = "EBIoTHubDemo.azure-devices.net";
         static string deviceKey = "two3s66XZ/GxuSWVSct5xUU1cLju9chicXKqOoG+uVk=";
 
+        static string DeviceID = "Joker";
+
         static void Main(string[] args)
         {
-            Console.WriteLine("Simulated device: Joker\n");
-            deviceClient = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey("Joker", deviceKey), TransportType.Mqtt);
+            Console.WriteLine($"Simulated device: {DeviceID}\n");
+            deviceClient = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey(DeviceID, deviceKey));
 
             SendDeviceToCloudMessagesAsync();
             Console.ReadLine();
@@ -32,18 +34,37 @@ namespace SimulatedDeviceJ
 
             while (true)
             {
-                double currentTemperature = Math.Round((minTemperature + rand.NextDouble() * 15), 2);
-                bool currentlyOpen = rand.NextDouble() > 0.5;
-                string level = ((currentTemperature > 30) && currentlyOpen ? "critical" : "normal");
+                string level = null;
+                Object telemetryDataPoint = null;
 
-                var telemetryDataPoint = new
+                //random check for "critical" messages
+                if (rand.NextDouble() > 0.9)
                 {
-                    MessageId = messageId++,
-                    DeviceId = "Joker",
-                    Temperature = currentTemperature,
-                    OpenDoor = currentlyOpen
-                    
-                };
+                    //then send a "critical message"
+                    telemetryDataPoint = new
+                    {
+                        MessageId = messageId++,
+                        DeviceId = DeviceID,
+                        Message = "WARNING - Low Battery"
+                    };
+                    level = "critical";
+                }
+                else
+                {
+                    double currentTemperature = Math.Round((minTemperature + rand.NextDouble() * 15), 2);
+                    bool currentlyOpen = rand.NextDouble() > 0.5;
+
+                    telemetryDataPoint = new
+                    {
+                        MessageId = messageId++,
+                        DeviceId = DeviceID,
+                        Temperature = currentTemperature,
+                        OpenDoor = currentlyOpen
+
+                    };
+                    level = "normal";
+                }
+                
                 var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
                 var message = new Message(Encoding.ASCII.GetBytes(messageString));
                 message.Properties.Add("level", level);
