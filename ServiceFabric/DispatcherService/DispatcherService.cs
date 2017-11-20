@@ -1,27 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Microsoft.ServiceFabric.Services.Remoting;
-using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceBus.Messaging;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using DeviceActor.Interfaces;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
-using BlobWriterService;
 using BlobWriter.interfaces;
-
-using System.Runtime.Serialization;
 using CommonResources;
+using System.Fabric.Description;
 
 namespace DispatcherService
 {
@@ -29,10 +22,10 @@ namespace DispatcherService
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class DispatcherService : StatelessService 
+    internal sealed class DispatcherService : StatelessService
     {
-        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-        public string deviceID = null;
+        private string sbConnectionString;
+        private string queueName;
 
         public DispatcherService(StatelessServiceContext context)
             : base(context)
@@ -57,12 +50,13 @@ namespace DispatcherService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - running");
-            
+            this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
+            this.ReadSettings();
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var queueName = "sbqueue1";
                 var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
                 queueClient.OnMessage(async message =>
@@ -84,6 +78,21 @@ namespace DispatcherService
                 });
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
+        }
+
+        private void ReadSettings()
+        {
+            ConfigurationSettings settingsFile = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings;
+
+            ConfigurationSection configSection = settingsFile.Sections["Connections"];
+
+            this.sbConnectionString = configSection.Parameters["ServiceBusConnectionString"].Value;
+            this.queueName = configSection.Parameters["ServiceBusQueueName"].Value;
+        }
+
+        private void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
+        {
+            this.ReadSettings();
         }
     }
 }

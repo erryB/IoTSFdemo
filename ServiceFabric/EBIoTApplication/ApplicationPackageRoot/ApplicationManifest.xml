@@ -9,6 +9,8 @@
     <Parameter Name="DeviceActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="AlarmService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
     <Parameter Name="AlarmService_ServiceBusTopicName" DefaultValue="sbalarmtopic" />
+    <Parameter Name="DispatcherService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
+    <Parameter Name="DispatcherService_ServiceBusQueueName" DefaultValue="sbqueue1" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -35,7 +37,16 @@
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="DispatcherServicePkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
+    <ConfigOverrides>
+      <ConfigOverride Name="Config">
+        <Settings>
+          <Section Name="Connections">
+            <Parameter Name="ServiceBusConnectionString" Value="[DispatcherService_ServiceBusConnectionString]" />
+            <Parameter Name="ServiceBusQueueName" Value="[DispatcherService_ServiceBusQueueName]" />
+          </Section>
+        </Settings>
+      </ConfigOverride>
+    </ConfigOverrides>
   </ServiceManifestImport>
   <DefaultServices>
     <!-- The section below creates instances of service types, when an instance of this 
