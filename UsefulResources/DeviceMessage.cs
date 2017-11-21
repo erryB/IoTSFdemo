@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -31,36 +32,44 @@ namespace UsefulResources
 
             if (messageString.Contains(MessagePropertyName.MessageType))
             {
-                this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
-                this.MessageID = Int32.Parse(json[MessagePropertyName.MessageID].Value<string>());
-                this.Timestamp = DateTime.Parse(json[MessagePropertyName.Timestamp].Value<string>());
-                this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
-
-                //how to assign to dictionary??
-                if (this.MessageData == null)
+                try
                 {
-                    if (this.MessageType == MessagePropertyName.TempHumType)
+                    this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
+                    this.MessageID = Int32.Parse(json[MessagePropertyName.MessageID].Value<string>());
+                    this.Timestamp = DateTime.ParseExact(json[MessagePropertyName.Timestamp].Value<string>(), "MM/dd/yyyy HH:mm:ss", null);
+                    this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
+
+                    
+                    if (this.MessageData == null)
                     {
-                        this.MessageData = new Dictionary<string, string>
+                        if (this.MessageType == MessagePropertyName.TempHumType)
                         {
-                            { MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString() },
-                            { MessagePropertyName.Humidity, json[MessagePropertyName.Humidity].Value<double>().ToString() }
+                            this.MessageData = new Dictionary<string, string>
+                        {
+                            { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
+                            { MessagePropertyName.Humidity, json[MessagePropertyName.MessageData][MessagePropertyName.Humidity].Value<string>() }
                         };
 
-                    }
-                    else if (this.MessageType == MessagePropertyName.TempOpenDoorType)
-                    {
-                        this.MessageData = new Dictionary<string, string>
+                        }
+                        else if (this.MessageType == MessagePropertyName.TempOpenDoorType)
                         {
-                            { MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString() },
-                            { MessagePropertyName.OpenDoor, json[MessagePropertyName.OpenDoor].Value<double>().ToString() }
+                            this.MessageData = new Dictionary<string, string>
+                        {
+                            { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
+                            { MessagePropertyName.OpenDoor, json[MessagePropertyName.MessageData][MessagePropertyName.OpenDoor].Value<string>() }
                         };
-                    } else
-                    {
-                        this.MessageData = new Dictionary<string, string>();
+                        }
+                        else
+                        {
+                            this.MessageData = new Dictionary<string, string>();
+                        }
                     }
+                } catch (Exception e)
+                {
+                    string error = e.Message;
+                    this.DeviceID = "MESSAGE ERROR";
+                    this.MessageType = MessagePropertyName.UnknownType;
                 }
-
 
             }
             else
@@ -111,9 +120,9 @@ namespace UsefulResources
 
         }
 
-        public override string ToString()
+        public string ToStringVerbose()
         {
-            string result = $"Message received from {DeviceID}, Timestamp {Timestamp}, Message Type: {MessageType}, Message ID: {MessageID}";
+            string result = $"Message received from {DeviceID}, Timestamp: {Timestamp}, Message Type: {MessageType}, Message ID: {MessageID}";
 
             if (this.MessageType == MessagePropertyName.TempHumType)
             {

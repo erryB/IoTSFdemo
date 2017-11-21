@@ -22,6 +22,6 @@ namespace UsefulResources
         public static string TempOpenDoorType = "TempOpenDoorType";
         public static string UnknownType = "UnknownType";
 
-        public static string OpenDoorCounter = "OpenDoorCounter";
+        //public static string OpenDoorCounter = "OpenDoorCounter";
     }
 }
