@@ -4,13 +4,13 @@
     <Parameter Name="BlobWriterService_InstanceCount" DefaultValue="1" />
     <Parameter Name="AlarmService_InstanceCount" DefaultValue="1" />
     <Parameter Name="DispatcherService_InstanceCount" DefaultValue="1" />
-    <Parameter Name="DeviceActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="DeviceActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="DeviceActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="AlarmService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
     <Parameter Name="AlarmService_ServiceBusTopicName" DefaultValue="sbalarmtopic" />
     <Parameter Name="DispatcherService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
     <Parameter Name="DispatcherService_ServiceBusQueueName" DefaultValue="sbqueue1" />
+    <Parameter Name="DeviceActor_PartitionCount" DefaultValue="10" />
+    <Parameter Name="DeviceActor_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="DeviceActor_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -69,9 +69,9 @@
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <Service Name="DeviceActorService" GeneratedIdRef="b85dad79-dcfa-4ea1-b91c-c78ee01bd47b|Persisted">
-      <StatefulService ServiceTypeName="DeviceActorServiceType" TargetReplicaSetSize="[DeviceActorService_TargetReplicaSetSize]" MinReplicaSetSize="[DeviceActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[DeviceActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+    <Service Name="DeviceActor" GeneratedIdRef="03da95b9-7ac3-4d66-976b-7b279f032bb5|Persisted">
+      <StatefulService ServiceTypeName="DeviceActorType" TargetReplicaSetSize="[DeviceActor_TargetReplicaSetSize]" MinReplicaSetSize="[DeviceActor_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[DeviceActor_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
   </DefaultServices>

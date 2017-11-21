@@ -46,9 +46,11 @@
     <Compile Include="Batman.cs" />
     <Compile Include="BatmanState.cs" />
     <Compile Include="Device.cs" />
+    <Compile Include="DeviceConfiguration.cs" />
     <Compile Include="DeviceMessage.cs" />
     <Compile Include="Joker.cs" />
     <Compile Include="JokerState.cs" />
+    <Compile Include="DeviceConfigurationPropertyNames.cs" />
     <Compile Include="MessagePropertyName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

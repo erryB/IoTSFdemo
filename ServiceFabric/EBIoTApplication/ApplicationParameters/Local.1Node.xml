@@ -4,8 +4,8 @@
     <Parameter Name="BlobWriterService_InstanceCount" Value="1" />
     <Parameter Name="AlarmService_InstanceCount" Value="1" />
     <Parameter Name="DispatcherService_InstanceCount" Value="1" />
-    <Parameter Name="DeviceActorService_PartitionCount" Value="1" />
-    <Parameter Name="DeviceActorService_TargetReplicaSetSize" Value="1" />
-    <Parameter Name="DeviceActorService_MinReplicaSetSize" Value="1" />
+    <Parameter Name="DeviceActor_PartitionCount" Value="1" />
+    <Parameter Name="DeviceActor_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="DeviceActor_MinReplicaSetSize" Value="1" />
   </Parameters>
 </Application>
