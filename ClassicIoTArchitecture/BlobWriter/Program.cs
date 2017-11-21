@@ -16,13 +16,13 @@ namespace BlobWriter
     {
         public static string data;
         public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+        public static string topicName = "sbtopic2";
+        public static string subscriptionName = "toBlob";
 
         static void Main(string[] args)
         {
-            Console.WriteLine("BlobWriter - reads messages from Q2, writes to Blob. Ctrl-C to exit.\n");
-            
-            var topicName = "sbtopic2";
-            var subscriptionName = "toBlob";
+            Console.WriteLine($"BlobWriter - reads messages from {topicName}, writes to Blob. Ctrl-C to exit.\n");
+           
             var client = SubscriptionClient.CreateFromConnectionString(sbConnectionString, topicName, subscriptionName);
 
 
@@ -39,11 +39,13 @@ namespace BlobWriter
             container.CreateIfNotExists();
 
             //Get a reference to an append blob.
-            CloudAppendBlob appendBlob = container.GetAppendBlobReference("receivedData.json");
+            CloudAppendBlob appendBlob = container.GetAppendBlobReference("ClassicIoTBlobWriter.json");
 
             //Create the append blob. Note that if the blob already exists, the CreateOrReplace() method will overwrite it.
             //You can check whether the blob exists to avoid overwriting it by using CloudAppendBlob.Exists().
             appendBlob.CreateOrReplace();
+
+            //Console.WriteLine("Waiting for a message");
 
             client.OnMessage(message =>
             {
@@ -57,6 +59,8 @@ namespace BlobWriter
                 Console.WriteLine("appended line to Blob: {0}", data);
                 
             });
+
+            //Console.WriteLine("no messages");
 
             Console.ReadLine();
         }
