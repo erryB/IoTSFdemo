@@ -36,6 +36,7 @@ namespace NewStateCalculator
             {
                 {
                     StatusPropertyName.TempHumType,
+                    //key:DeviceID
                     new Dictionary<string, List<DeviceStatus>>()
                 },
                 {
@@ -93,7 +94,7 @@ namespace NewStateCalculator
 
                 //send to Q
                 var StatusToSend = JsonConvert.SerializeObject(updatedStatus);
-                Console.WriteLine($"STATUS TO SEND: {StatusToSend}");
+                //Console.WriteLine($"STATUS TO SEND: {StatusToSend}");
                 SendToQueue(StatusToSend, queueName, sbConnectionString, updatedStatus);
                 Console.WriteLine($"STATUS SENT to {queueName}: {StatusToSend}");
 
@@ -109,24 +110,6 @@ namespace NewStateCalculator
                     DeviceTypesStatus[updatedStatus.DeviceType][updatedStatus.DeviceID].Add(updatedStatus);
                 }
                 
-
-                //JObject json = JObject.Parse(s);
-                //if (json["deviceId"].Value<string>() == "Batman")
-                //{
-                //    UpdateBatmanState(json);
-                //    var state = JsonConvert.SerializeObject(prevBatmanState);
-                //    SendToQueue(state, "Batman");
-                //    Console.WriteLine("message from Batman sent to Q3: {0}", state);
-                //}
-                //else if (json["deviceId"].Value<string>() == "Joker")
-                //{
-                //    UpdateJokerState(json);
-                //    var state = JsonConvert.SerializeObject(prevBatmanState);
-                //    SendToQueue(state, "Joker");
-                //    Console.WriteLine("message from Joker sent to Q3: {0}", state);
-
-                //}
-
             });
             Console.ReadLine();
             
@@ -223,66 +206,6 @@ namespace NewStateCalculator
             return currentStatus;
 
         }
-
-        //public static void UpdateBatmanState(JObject json)
-        //{
-        //    BatmanState currentBatmanState = new BatmanState
-        //    {
-        //        DeviceID = "Batman",
-        //        Temperature = json["temperature"].Value<double>(),
-        //        Humidity = json["humidity"].Value<double>()
-        //    };
-
-        //    if (currentBatmanState.Temperature >= prevBatmanState.Temperature)
-        //    {
-        //        currentBatmanState.CountTempIncreasing = prevBatmanState.CountTempIncreasing+1;
-        //    }
-        //    else
-        //    {
-        //        currentBatmanState.CountTempIncreasing = 0;
-        //    }
-        //    if (currentBatmanState.Humidity >= prevBatmanState.Humidity)
-        //    {
-        //        currentBatmanState.CountHumIncreasing = prevBatmanState.CountHumIncreasing+1;
-        //    }
-        //    else
-        //    {
-        //        currentBatmanState.CountHumIncreasing = 0;
-        //    }
-           
-        //    prevBatmanState = currentBatmanState;
-        //}
-
-        //public static void UpdateJokerState(JObject json)
-        //{
-        //    JokerState currentJokerState = new JokerState
-        //    {
-        //        DeviceID = "Joker",
-
-        //        Temperature = json["temperature"].Value<double>(),
-        //        IsOpen = json["temperature"].Value<bool>()
-        //    };
-
-        //    if (currentJokerState.Temperature >= prevJokerState.Temperature)
-        //    {
-        //        currentJokerState.TempIncreasingCount = prevJokerState.TempIncreasingCount+1;
-        //    }
-        //    else
-        //    {
-        //        currentJokerState.TempIncreasingCount = 0;
-        //    }
-        //    if (prevJokerState.IsOpen && currentJokerState.IsOpen)
-        //    {
-        //        currentJokerState.DoorOpenCount = prevJokerState.DoorOpenCount+1;
-        //    }
-        //    else
-        //    {
-        //        currentJokerState.DoorOpenCount = 0;
-        //    }
-           
-        //    prevJokerState = currentJokerState;
-
-        //}
 
         public static void SendToQueue(string statusToSend, string queueName, string sbConnectionString, DeviceStatus status)
         {

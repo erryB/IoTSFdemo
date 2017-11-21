@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlarmParameters.cs" />
     <Compile Include="DeviceMessage.cs" />
     <Compile Include="DeviceStatus.cs" />
     <Compile Include="MessagePropertyName.cs" />
