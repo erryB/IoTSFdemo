@@ -46,10 +46,8 @@
   <ItemGroup>
     <Compile Include="AlarmParameters.cs" />
     <Compile Include="DeviceMessage.cs" />
-    <Compile Include="DeviceStatus.cs" />
     <Compile Include="MessagePropertyName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StatusPropertyName.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

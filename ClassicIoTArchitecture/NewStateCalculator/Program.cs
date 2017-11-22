@@ -22,7 +22,7 @@ namespace NewStateCalculator
 
         
         //key: DeviceType
-        public static Dictionary<string, Dictionary<string, List<DeviceStatus>>> DeviceTypesStatus;
+        public static Dictionary<string, Dictionary<string, List<DeviceMessage>>> DeviceTypesStatus;
        
 
         static void Main(string[] args)
@@ -32,20 +32,20 @@ namespace NewStateCalculator
             var client = SubscriptionClient.CreateFromConnectionString(sbConnectionString, topicName, subscriptionName);
 
             //init dictionary. If you have more DeviceTypes you can use a List
-            DeviceTypesStatus = new Dictionary<string, Dictionary<string, List<DeviceStatus>>>
+            DeviceTypesStatus = new Dictionary<string, Dictionary<string, List<DeviceMessage>>>
             {
                 {
-                    StatusPropertyName.TempHumType,
+                    MessagePropertyName.TempHumType,
                     //key:DeviceID
-                    new Dictionary<string, List<DeviceStatus>>()
+                    new Dictionary<string, List<DeviceMessage>>()
                 },
                 {
-                    StatusPropertyName.TempOpenDoorType,
-                    new Dictionary<string, List<DeviceStatus>>()
+                    MessagePropertyName.TempOpenDoorType,
+                    new Dictionary<string, List<DeviceMessage>>()
                 },
                 {
-                    StatusPropertyName.UnknownType,
-                    new Dictionary<string, List<DeviceStatus>>()
+                    MessagePropertyName.UnknownType,
+                    new Dictionary<string, List<DeviceMessage>>()
                 }
             };
 
@@ -61,36 +61,23 @@ namespace NewStateCalculator
                 //create a DeviceMessage from the string read from the topic
                 DeviceMessage receivedMessage = new DeviceMessage(s);
 
-                //create the related DeviceStatus
-                DeviceStatus currentDeviceStatus = new DeviceStatus
-                {
-                    DeviceID = receivedMessage.DeviceID,
-                    DeviceType = receivedMessage.MessageType,
-                    Timestamp = receivedMessage.Timestamp,
-                    Data = receivedMessage.MessageData,
-                    MessageID = receivedMessage.MessageID
-                };
+                DeviceMessage updatedStatus;
 
-                DeviceStatus updatedStatus;
-
-                //status update based on the DeviceType
-                if (currentDeviceStatus.DeviceType == StatusPropertyName.TempHumType)
+                if(receivedMessage.MessageType == MessagePropertyName.TempHumType)
                 {
-                    updatedStatus = UpdateTempHumType(currentDeviceStatus);
+                    updatedStatus = UpdateTempHumType(receivedMessage);
                 }
-                else if (currentDeviceStatus.DeviceType == StatusPropertyName.TempOpenDoorType)
+                else if (receivedMessage.MessageType == MessagePropertyName.TempOpenDoorType)
                 {
-                    updatedStatus = UpdateTempOpenDoorType(currentDeviceStatus);
+                    updatedStatus = UpdateTempOpenDoorType(receivedMessage);
                 }
                 else
                 {
-                    updatedStatus = new DeviceStatus
-                    {
-                        DeviceID = StatusPropertyName.UnknownType,
-                        DeviceType = StatusPropertyName.UnknownType
-                       
-                    };
+                    updatedStatus = new DeviceMessage(MessagePropertyName.UnknownType, MessagePropertyName.UnknownType);
+                    
                 }
+
+                
 
                 //send to Q
                 var StatusToSend = JsonConvert.SerializeObject(updatedStatus);
@@ -101,13 +88,13 @@ namespace NewStateCalculator
                 //update dictionary
 
                 //if the currentDeviceID does not exist in the dictionary, then add it. Otherwise update with a new item on its list
-                if (!DeviceTypesStatus[updatedStatus.DeviceType].ContainsKey(updatedStatus.DeviceID))
+                if (!DeviceTypesStatus[updatedStatus.MessageType].ContainsKey(updatedStatus.DeviceID))
                 {
-                    DeviceTypesStatus[updatedStatus.DeviceType].Add(updatedStatus.DeviceID, new List<DeviceStatus> { updatedStatus });
+                    DeviceTypesStatus[updatedStatus.MessageType].Add(updatedStatus.DeviceID, new List<DeviceMessage> { updatedStatus });
                 }
                 else
                 {
-                    DeviceTypesStatus[updatedStatus.DeviceType][updatedStatus.DeviceID].Add(updatedStatus);
+                    DeviceTypesStatus[updatedStatus.MessageType][updatedStatus.DeviceID].Add(updatedStatus);
                 }
                 
             });
@@ -115,42 +102,42 @@ namespace NewStateCalculator
             
         }
 
-        public static DeviceStatus UpdateTempHumType(DeviceStatus currentStatus)
+        public static DeviceMessage UpdateTempHumType(DeviceMessage currentStatus)
         {
             //if there are no messages from that DeviceID, then create
-            if (!DeviceTypesStatus[currentStatus.DeviceType].ContainsKey(currentStatus.DeviceID))
+            if (!DeviceTypesStatus[currentStatus.MessageType].ContainsKey(currentStatus.DeviceID))
             {
-                currentStatus.Data.Add(StatusPropertyName.TempIncreasingSec, "0");
-                currentStatus.Data.Add(StatusPropertyName.HumIncreasingSec, "0");
+                currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
+                currentStatus.MessageData.Add(MessagePropertyName.HumIncreasingSec, "0");
             } else
             {
-                var prevDeviceStatus = (DeviceTypesStatus[currentStatus.DeviceType][currentStatus.DeviceID]).Last();
+                var prevDeviceStatus = (DeviceTypesStatus[currentStatus.MessageType][currentStatus.DeviceID]).Last();
 
                 //increasing temperature
-                if (Convert.ToDouble(currentStatus.Data[StatusPropertyName.Temperature]) > Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.Temperature]))
+                if (Convert.ToDouble(currentStatus.MessageData[MessagePropertyName.Temperature]) > Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.Temperature]))
                 {
                     var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
-                    var totSeconds = Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.TempIncreasingSec]) + DiffSeconds;
-                    currentStatus.Data.Add(StatusPropertyName.TempIncreasingSec, Convert.ToString(totSeconds));
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.TempIncreasingSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, Convert.ToString(totSeconds));
 
                 }
                 else
                 {
-                    currentStatus.Data.Add(StatusPropertyName.TempIncreasingSec, "0");
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
                 }
 
 
                 //increasing humidity
-                if (Convert.ToDouble(currentStatus.Data[StatusPropertyName.Humidity]) > Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.Humidity]))
+                if (Convert.ToDouble(currentStatus.MessageData[MessagePropertyName.Humidity]) > Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.Humidity]))
                 {
                     var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
-                    var totSeconds = Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.HumIncreasingSec]) + DiffSeconds;
-                    currentStatus.Data.Add(StatusPropertyName.HumIncreasingSec, Convert.ToString(totSeconds));
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.HumIncreasingSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.HumIncreasingSec, Convert.ToString(totSeconds));
 
                 }
                 else
                 {
-                    currentStatus.Data.Add(StatusPropertyName.HumIncreasingSec, "0");
+                    currentStatus.MessageData.Add(MessagePropertyName.HumIncreasingSec, "0");
                 }
 
             }
@@ -160,43 +147,43 @@ namespace NewStateCalculator
             return currentStatus;
         }
 
-        public static DeviceStatus UpdateTempOpenDoorType(DeviceStatus currentStatus)
+        public static DeviceMessage UpdateTempOpenDoorType(DeviceMessage currentStatus)
         {
             //if there are no messages from that DeviceID, then create
-            if (!DeviceTypesStatus[currentStatus.DeviceType].ContainsKey(currentStatus.DeviceID))
+            if (!DeviceTypesStatus[currentStatus.MessageType].ContainsKey(currentStatus.DeviceID))
             {
-                currentStatus.Data.Add(StatusPropertyName.TempIncreasingSec, "0");
-                currentStatus.Data.Add(StatusPropertyName.OpenDoorSec, "0");
+                currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
+                currentStatus.MessageData.Add(MessagePropertyName.OpenDoorSec, "0");
             }
             else
             {
-                var prevDeviceStatus = (DeviceTypesStatus[currentStatus.DeviceType][currentStatus.DeviceID]).Last();
+                var prevDeviceStatus = (DeviceTypesStatus[currentStatus.MessageType][currentStatus.DeviceID]).Last();
 
                 //increasing temperature
-                if (Convert.ToDouble(currentStatus.Data[StatusPropertyName.Temperature]) > Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.Temperature]))
+                if (Convert.ToDouble(currentStatus.MessageData[MessagePropertyName.Temperature]) > Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.Temperature]))
                 {
                     var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
-                    var totSeconds = Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.TempIncreasingSec]) + DiffSeconds;
-                    currentStatus.Data.Add(StatusPropertyName.TempIncreasingSec, Convert.ToString(totSeconds));
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.TempIncreasingSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, Convert.ToString(totSeconds));
 
                 }
                 else
                 {
-                    currentStatus.Data.Add(StatusPropertyName.TempIncreasingSec, "0");
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
                 }
 
 
                 //Door is still open
-                if (Convert.ToBoolean(currentStatus.Data[StatusPropertyName.OpenDoor]) && Convert.ToBoolean(prevDeviceStatus.Data[StatusPropertyName.OpenDoor]))
+                if (Convert.ToBoolean(currentStatus.MessageData[MessagePropertyName.OpenDoor]) && Convert.ToBoolean(prevDeviceStatus.MessageData[MessagePropertyName.OpenDoor]))
                 {
                     var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
-                    var totSeconds = Convert.ToDouble(prevDeviceStatus.Data[StatusPropertyName.OpenDoorSec]) + DiffSeconds;
-                    currentStatus.Data.Add(StatusPropertyName.OpenDoorSec, Convert.ToString(totSeconds));
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.OpenDoorSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.OpenDoorSec, Convert.ToString(totSeconds));
 
                 }
                 else
                 {
-                    currentStatus.Data.Add(StatusPropertyName.OpenDoorSec, "0");
+                    currentStatus.MessageData.Add(MessagePropertyName.OpenDoorSec, "0");
                 }
             }
             
@@ -207,7 +194,7 @@ namespace NewStateCalculator
 
         }
 
-        public static void SendToQueue(string statusToSend, string queueName, string sbConnectionString, DeviceStatus status)
+        public static void SendToQueue(string statusToSend, string queueName, string sbConnectionString, DeviceMessage status)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
@@ -220,7 +207,7 @@ namespace NewStateCalculator
             {
                 Label = "NewStateForDevice " + status.DeviceID
             };
-            bm.Properties["DeviceType"] = status.DeviceType;
+            bm.Properties["DeviceType"] = status.MessageType;
 
             var queue3Client = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 

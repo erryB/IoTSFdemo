@@ -39,32 +39,41 @@ namespace UsefulResources
                     this.Timestamp = DateTime.ParseExact(json[MessagePropertyName.Timestamp].Value<string>(), "MM/dd/yyyy HH:mm:ss", null);
                     this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
 
-                    
-                    if (this.MessageData == null)
+                    if (this.MessageType == MessagePropertyName.TempHumType)
                     {
-                        if (this.MessageType == MessagePropertyName.TempHumType)
-                        {
-                            this.MessageData = new Dictionary<string, string>
+                        this.MessageData = new Dictionary<string, string>
                         {
                             { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
                             { MessagePropertyName.Humidity, json[MessagePropertyName.MessageData][MessagePropertyName.Humidity].Value<string>() }
-                        };
 
-                        }
-                        else if (this.MessageType == MessagePropertyName.TempOpenDoorType)
-                        {
-                            this.MessageData = new Dictionary<string, string>
-                        {
-                            { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
-                            { MessagePropertyName.OpenDoor, json[MessagePropertyName.MessageData][MessagePropertyName.OpenDoor].Value<string>() }
                         };
-                        }
-                        else
+                        if (messageString.Contains(MessagePropertyName.TempIncreasingSec) && messageString.Contains(MessagePropertyName.HumIncreasingSec))
                         {
-                            this.MessageData = new Dictionary<string, string>();
+                            this.MessageData.Add(MessagePropertyName.TempIncreasingSec, json[MessagePropertyName.MessageData][MessagePropertyName.TempIncreasingSec].Value<string>());
+                            this.MessageData.Add(MessagePropertyName.HumIncreasingSec, json[MessagePropertyName.MessageData][MessagePropertyName.HumIncreasingSec].Value<string>());
+                        }
+
+                    }
+                    else if (this.MessageType == MessagePropertyName.TempOpenDoorType)
+                    {
+                        this.MessageData = new Dictionary<string, string>
+                        {
+                                { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
+                                { MessagePropertyName.OpenDoor, json[MessagePropertyName.MessageData][MessagePropertyName.OpenDoor].Value<string>() }
+                        };
+                        if (messageString.Contains(MessagePropertyName.TempIncreasingSec) && messageString.Contains(MessagePropertyName.OpenDoorSec))
+                        {
+                            this.MessageData.Add(MessagePropertyName.TempIncreasingSec, json[MessagePropertyName.MessageData][MessagePropertyName.TempIncreasingSec].Value<string>());
+                            this.MessageData.Add(MessagePropertyName.OpenDoorSec, json[MessagePropertyName.MessageData][MessagePropertyName.OpenDoorSec].Value<string>());
                         }
                     }
-                } catch (Exception e)
+                    else
+                    {
+                        this.MessageData = new Dictionary<string, string>();
+                    }
+
+                }
+                catch (Exception e)
                 {
                     string error = e.Message;
                     this.DeviceID = "MESSAGE ERROR";
@@ -118,6 +127,13 @@ namespace UsefulResources
                 this.MessageType = MessagePropertyName.UnknownType;
             }
 
+        }
+
+        //create a ERROR deviceMessage
+        public DeviceMessage(string DeviceID, string MessageType)
+        {
+            this.DeviceID = DeviceID;
+            this.MessageType = MessageType;
         }
 
         public string ToStringVerbose()
