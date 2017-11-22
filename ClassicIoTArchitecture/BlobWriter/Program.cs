@@ -9,21 +9,22 @@ using Microsoft.WindowsAzure; // Namespace for CloudConfigurationManager
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using Newtonsoft.Json;
+using System.Configuration;
 
 namespace BlobWriter
 {
     class Program
     {
-        public static string data;
-        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+
         public static string topicName = "sbtopic2";
         public static string subscriptionName = "toBlob";
+        public static string containerName = "ebcontainer";
 
         static void Main(string[] args)
         {
             Console.WriteLine($"BlobWriter - reads messages from {topicName}, writes to Blob. Ctrl-C to exit.\n");
            
-            var client = SubscriptionClient.CreateFromConnectionString(sbConnectionString, topicName, subscriptionName);
+            var client = SubscriptionClient.CreateFromConnectionString(ConfigurationManager.AppSettings["sbConnectionstring"], topicName, subscriptionName);
 
 
             //Parse the connection string for the storage account.
@@ -33,7 +34,7 @@ namespace BlobWriter
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             //Get a reference to a container.
-            CloudBlobContainer container = blobClient.GetContainerReference("ebcontainer");
+            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
             //Create the container if it does not already exist.
             container.CreateIfNotExists();
@@ -51,7 +52,7 @@ namespace BlobWriter
             {
                 Stream stream = message.GetBody<Stream>();
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
-                data = reader.ReadToEnd();
+                string data = reader.ReadToEnd();
 
                 //Console.WriteLine(String.Format("BlobWriter - Message read from Q2: {0}", data));
                 appendBlob.AppendText(data + "\n");

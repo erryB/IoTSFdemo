@@ -4,13 +4,13 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using UsefulResources;
+using System.Configuration;
 
 namespace CAReader
 {
     class Program
     {
-        public static DeviceMessage deviceMsg;
-        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+        //public static DeviceMessage deviceMsg;
         public static string queueName = "sbqueue1";
         public static string topicName = "sbtopic2";
 
@@ -18,7 +18,7 @@ namespace CAReader
         {
             Console.WriteLine($"CAReader - reads messages from {queueName}. Ctrl-C to exit.\n");
 
-            var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
+            var queueClient = QueueClient.CreateFromConnectionString(ConfigurationManager.AppSettings["sbConnectionstring"], queueName);
 
             queueClient.OnMessage(message =>
             {
@@ -30,11 +30,11 @@ namespace CAReader
                 try
                 {
                     //identification of the proper MessageType
-                    deviceMsg = new DeviceMessage(s, timestamp);
+                    DeviceMessage deviceMsg = new DeviceMessage(s, timestamp);
                     Console.WriteLine($"validated message: {s}, timestamp {timestamp}");
 
                     string messageString = JsonConvert.SerializeObject(deviceMsg);
-                    SendToTopic(messageString, sbConnectionString, topicName);
+                    SendToTopic(deviceMsg, messageString, ConfigurationManager.AppSettings["sbConnectionstring"], topicName);
                     Console.WriteLine($"message sent to {topicName}: {messageString}\n");
 
                 }
@@ -50,7 +50,7 @@ namespace CAReader
 
 
 
-        public static void SendToTopic(string messageString, string sbConnectionString, string topicName)
+        public static void SendToTopic(DeviceMessage deviceMsg, string messageString, string sbConnectionString, string topicName)
         {
             var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
 
