@@ -7,8 +7,8 @@ namespace IoTDemoConsole.CommandParameters
     /// <summary>
     /// Class SetDeviceConfigurationParameters.
     /// </summary>
-    /// <seealso cref="IoTDemoConsole.CommandParameters.ActorParametersBase" />
-    public class SetDeviceConfigurationParameters : ActorParametersBase
+    /// <seealso cref="DeviceCommandParametersBase" />
+    public class SetDeviceConfigurationParameters : DeviceCommandParametersBase
     {
 
 

@@ -16,7 +16,7 @@ namespace CommonResources
         /// </summary>
         /// <value>The properties.</value>
         [DataMember]
-        public Dictionary<string, object> Properties { get; set; }
+        public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 
         #region [ Public Methods ]
 

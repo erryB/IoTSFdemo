@@ -33,7 +33,7 @@ namespace IoTDemoConsole.Commands
         {
             try
             {
-                var actorId = new ActorId(arguments.ActorId);
+                var actorId = new ActorId(arguments.DeviceId);
                 var serviceUri = new Uri(arguments.ServiceUri);
                 var actorProxy = ActorProxy.Create<IDeviceConfiguration>(actorId, serviceUri);
                 string jsonConfig = await FileHelper.ReadAllTextAsync(arguments.FileName);
