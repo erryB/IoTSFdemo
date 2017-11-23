@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -31,36 +32,53 @@ namespace UsefulResources
 
             if (messageString.Contains(MessagePropertyName.MessageType))
             {
-                this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
-                this.MessageID = Int32.Parse(json[MessagePropertyName.MessageID].Value<string>());
-                this.Timestamp = DateTime.Parse(json[MessagePropertyName.Timestamp].Value<string>());
-                this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
-
-                //how to assign to dictionary??
-                if (this.MessageData == null)
+                try
                 {
+                    this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
+                    this.MessageID = Int32.Parse(json[MessagePropertyName.MessageID].Value<string>());
+                    this.Timestamp = DateTime.ParseExact(json[MessagePropertyName.Timestamp].Value<string>(), "MM/dd/yyyy HH:mm:ss", null);
+                    this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
+
                     if (this.MessageType == MessagePropertyName.TempHumType)
                     {
                         this.MessageData = new Dictionary<string, string>
                         {
-                            { MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString() },
-                            { MessagePropertyName.Humidity, json[MessagePropertyName.Humidity].Value<double>().ToString() }
+                            { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
+                            { MessagePropertyName.Humidity, json[MessagePropertyName.MessageData][MessagePropertyName.Humidity].Value<string>() }
+
                         };
+                        if (messageString.Contains(MessagePropertyName.TempIncreasingSec) && messageString.Contains(MessagePropertyName.HumIncreasingSec))
+                        {
+                            this.MessageData.Add(MessagePropertyName.TempIncreasingSec, json[MessagePropertyName.MessageData][MessagePropertyName.TempIncreasingSec].Value<string>());
+                            this.MessageData.Add(MessagePropertyName.HumIncreasingSec, json[MessagePropertyName.MessageData][MessagePropertyName.HumIncreasingSec].Value<string>());
+                        }
 
                     }
                     else if (this.MessageType == MessagePropertyName.TempOpenDoorType)
                     {
                         this.MessageData = new Dictionary<string, string>
                         {
-                            { MessagePropertyName.Temperature, json[MessagePropertyName.Temperature].Value<double>().ToString() },
-                            { MessagePropertyName.OpenDoor, json[MessagePropertyName.OpenDoor].Value<double>().ToString() }
+                                { MessagePropertyName.Temperature, json[MessagePropertyName.MessageData][MessagePropertyName.Temperature].Value<string>()},
+                                { MessagePropertyName.OpenDoor, json[MessagePropertyName.MessageData][MessagePropertyName.OpenDoor].Value<string>() }
                         };
-                    } else
+                        if (messageString.Contains(MessagePropertyName.TempIncreasingSec) && messageString.Contains(MessagePropertyName.OpenDoorSec))
+                        {
+                            this.MessageData.Add(MessagePropertyName.TempIncreasingSec, json[MessagePropertyName.MessageData][MessagePropertyName.TempIncreasingSec].Value<string>());
+                            this.MessageData.Add(MessagePropertyName.OpenDoorSec, json[MessagePropertyName.MessageData][MessagePropertyName.OpenDoorSec].Value<string>());
+                        }
+                    }
+                    else
                     {
                         this.MessageData = new Dictionary<string, string>();
                     }
-                }
 
+                }
+                catch (Exception e)
+                {
+                    string error = e.Message;
+                    this.DeviceID = "MESSAGE ERROR";
+                    this.MessageType = MessagePropertyName.UnknownType;
+                }
 
             }
             else
@@ -111,9 +129,16 @@ namespace UsefulResources
 
         }
 
-        public override string ToString()
+        //create a ERROR deviceMessage
+        public DeviceMessage(string DeviceID, string MessageType)
         {
-            string result = $"Message received from {DeviceID}, Timestamp {Timestamp}, Message Type: {MessageType}, Message ID: {MessageID}";
+            this.DeviceID = DeviceID;
+            this.MessageType = MessageType;
+        }
+
+        public string ToStringVerbose()
+        {
+            string result = $"Message received from {DeviceID}, Timestamp: {Timestamp}, Message Type: {MessageType}, Message ID: {MessageID}";
 
             if (this.MessageType == MessagePropertyName.TempHumType)
             {

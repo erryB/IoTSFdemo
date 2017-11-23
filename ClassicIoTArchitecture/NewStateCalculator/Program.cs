@@ -8,25 +8,47 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UsefulResources;
 
 namespace NewStateCalculator
 {
     class Program
     {
-        public static BatmanState prevBatmanState;
-        public static JokerState prevJokerState;
-        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         
+        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+        public static string topicName = "sbtopic2";
+        public static string subscriptionName = "toNewState";
+        public static string queueName = "sbqueue3";
+
+        
+        //key: DeviceType
+        public static Dictionary<string, Dictionary<string, List<DeviceMessage>>> DeviceTypesStatus;
+       
+
         static void Main(string[] args)
         {
-            Console.WriteLine("NewStateCalculator - reads messages from T2, calculates new State for each device. Ctrl-C to exit.\n");
-            var topicName = "sbtopic2";
-            var subscriptionName = "toNewState";
+            Console.WriteLine($"NewStateCalculator - reads messages from {topicName}, calculates new Status for each device. Ctrl-C to exit.\n");
+            
             var client = SubscriptionClient.CreateFromConnectionString(sbConnectionString, topicName, subscriptionName);
 
-            prevBatmanState = new BatmanState();
-            prevJokerState = new JokerState();
-            
+            //init dictionary. If you have more DeviceTypes you can use a List
+            DeviceTypesStatus = new Dictionary<string, Dictionary<string, List<DeviceMessage>>>
+            {
+                {
+                    MessagePropertyName.TempHumType,
+                    //key:DeviceID
+                    new Dictionary<string, List<DeviceMessage>>()
+                },
+                {
+                    MessagePropertyName.TempOpenDoorType,
+                    new Dictionary<string, List<DeviceMessage>>()
+                },
+                {
+                    MessagePropertyName.UnknownType,
+                    new Dictionary<string, List<DeviceMessage>>()
+                }
+            };
+
             //readfromtopic  
             client.OnMessage(message =>
             {
@@ -36,106 +58,157 @@ namespace NewStateCalculator
 
                 Console.WriteLine("received message from topic: {0}", s);
 
+                //create a DeviceMessage from the string read from the topic
+                DeviceMessage receivedMessage = new DeviceMessage(s);
 
-                JObject json = JObject.Parse(s);
-                if (json["deviceId"].Value<string>() == "Batman")
+                DeviceMessage updatedStatus;
+
+                if(receivedMessage.MessageType == MessagePropertyName.TempHumType)
                 {
-                    UpdateBatmanState(json);
-                    var state = JsonConvert.SerializeObject(prevBatmanState);
-                    SendToQueue(state, "Batman");
-                    Console.WriteLine("message from Batman sent to Q3: {0}", state);
+                    updatedStatus = UpdateTempHumType(receivedMessage);
                 }
-                else if (json["deviceId"].Value<string>() == "Joker")
+                else if (receivedMessage.MessageType == MessagePropertyName.TempOpenDoorType)
                 {
-                    UpdateJokerState(json);
-                    var state = JsonConvert.SerializeObject(prevBatmanState);
-                    SendToQueue(state, "Joker");
-                    Console.WriteLine("message from Joker sent to Q3: {0}", state);
-
+                    updatedStatus = UpdateTempOpenDoorType(receivedMessage);
+                }
+                else
+                {
+                    updatedStatus = new DeviceMessage(MessagePropertyName.UnknownType, MessagePropertyName.UnknownType);
+                    
                 }
 
+                
+
+                //send to Q
+                var StatusToSend = JsonConvert.SerializeObject(updatedStatus);
+                //Console.WriteLine($"STATUS TO SEND: {StatusToSend}");
+                SendToQueue(StatusToSend, queueName, sbConnectionString, updatedStatus);
+                Console.WriteLine($"STATUS SENT to {queueName}: {StatusToSend}");
+
+                //update dictionary
+
+                //if the currentDeviceID does not exist in the dictionary, then add it. Otherwise update with a new item on its list
+                if (!DeviceTypesStatus[updatedStatus.MessageType].ContainsKey(updatedStatus.DeviceID))
+                {
+                    DeviceTypesStatus[updatedStatus.MessageType].Add(updatedStatus.DeviceID, new List<DeviceMessage> { updatedStatus });
+                }
+                else
+                {
+                    DeviceTypesStatus[updatedStatus.MessageType][updatedStatus.DeviceID].Add(updatedStatus);
+                }
+                
             });
             Console.ReadLine();
             
         }
 
-        public static void UpdateBatmanState(JObject json)
+        public static DeviceMessage UpdateTempHumType(DeviceMessage currentStatus)
         {
-            BatmanState currentBatmanState = new BatmanState
+            //if there are no messages from that DeviceID, then create
+            if (!DeviceTypesStatus[currentStatus.MessageType].ContainsKey(currentStatus.DeviceID))
             {
-                DeviceID = "Batman",
-                Temperature = json["temperature"].Value<double>(),
-                Humidity = json["humidity"].Value<double>()
-            };
+                currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
+                currentStatus.MessageData.Add(MessagePropertyName.HumIncreasingSec, "0");
+            } else
+            {
+                var prevDeviceStatus = (DeviceTypesStatus[currentStatus.MessageType][currentStatus.DeviceID]).Last();
 
-            if (currentBatmanState.Temperature >= prevBatmanState.Temperature)
-            {
-                currentBatmanState.CountTempIncreasing = prevBatmanState.CountTempIncreasing+1;
+                //increasing temperature
+                if (Convert.ToDouble(currentStatus.MessageData[MessagePropertyName.Temperature]) > Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.Temperature]))
+                {
+                    var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.TempIncreasingSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, Convert.ToString(totSeconds));
+
+                }
+                else
+                {
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
+                }
+
+
+                //increasing humidity
+                if (Convert.ToDouble(currentStatus.MessageData[MessagePropertyName.Humidity]) > Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.Humidity]))
+                {
+                    var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.HumIncreasingSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.HumIncreasingSec, Convert.ToString(totSeconds));
+
+                }
+                else
+                {
+                    currentStatus.MessageData.Add(MessagePropertyName.HumIncreasingSec, "0");
+                }
+
             }
-            else
-            {
-                currentBatmanState.CountTempIncreasing = 0;
-            }
-            if (currentBatmanState.Humidity >= prevBatmanState.Humidity)
-            {
-                currentBatmanState.CountHumIncreasing = prevBatmanState.CountHumIncreasing+1;
-            }
-            else
-            {
-                currentBatmanState.CountHumIncreasing = 0;
-            }
-           
-            prevBatmanState = currentBatmanState;
+
+            //if we want to check alarm parameters in NewStateCalculator, make it here
+
+            return currentStatus;
         }
 
-        public static void UpdateJokerState(JObject json)
+        public static DeviceMessage UpdateTempOpenDoorType(DeviceMessage currentStatus)
         {
-            JokerState currentJokerState = new JokerState
+            //if there are no messages from that DeviceID, then create
+            if (!DeviceTypesStatus[currentStatus.MessageType].ContainsKey(currentStatus.DeviceID))
             {
-                DeviceID = "Joker",
-
-                Temperature = json["temperature"].Value<double>(),
-                IsOpen = json["temperature"].Value<bool>()
-            };
-
-            if (currentJokerState.Temperature >= prevJokerState.Temperature)
-            {
-                currentJokerState.TempIncreasingCount = prevJokerState.TempIncreasingCount+1;
+                currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
+                currentStatus.MessageData.Add(MessagePropertyName.OpenDoorSec, "0");
             }
             else
             {
-                currentJokerState.TempIncreasingCount = 0;
+                var prevDeviceStatus = (DeviceTypesStatus[currentStatus.MessageType][currentStatus.DeviceID]).Last();
+
+                //increasing temperature
+                if (Convert.ToDouble(currentStatus.MessageData[MessagePropertyName.Temperature]) > Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.Temperature]))
+                {
+                    var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.TempIncreasingSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, Convert.ToString(totSeconds));
+
+                }
+                else
+                {
+                    currentStatus.MessageData.Add(MessagePropertyName.TempIncreasingSec, "0");
+                }
+
+
+                //Door is still open
+                if (Convert.ToBoolean(currentStatus.MessageData[MessagePropertyName.OpenDoor]) && Convert.ToBoolean(prevDeviceStatus.MessageData[MessagePropertyName.OpenDoor]))
+                {
+                    var DiffSeconds = (currentStatus.Timestamp - prevDeviceStatus.Timestamp).Seconds;
+                    var totSeconds = Convert.ToDouble(prevDeviceStatus.MessageData[MessagePropertyName.OpenDoorSec]) + DiffSeconds;
+                    currentStatus.MessageData.Add(MessagePropertyName.OpenDoorSec, Convert.ToString(totSeconds));
+
+                }
+                else
+                {
+                    currentStatus.MessageData.Add(MessagePropertyName.OpenDoorSec, "0");
+                }
             }
-            if (prevJokerState.IsOpen && currentJokerState.IsOpen)
-            {
-                currentJokerState.DoorOpenCount = prevJokerState.DoorOpenCount+1;
-            }
-            else
-            {
-                currentJokerState.DoorOpenCount = 0;
-            }
-           
-            prevJokerState = currentJokerState;
+            
+
+            //if we want to check alarm parameters in NewStateCalculator, make it here
+
+            return currentStatus;
 
         }
 
-        public static void SendToQueue(string state, string deviceID)
+        public static void SendToQueue(string statusToSend, string queueName, string sbConnectionString, DeviceMessage status)
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             
-            writer.Write(state);
+            writer.Write(statusToSend);
             writer.Flush();
             stream.Position = 0;
             
             var bm = new BrokeredMessage(stream)
             {
-                Label = "NewStateForDevice " + deviceID
+                Label = "NewStateForDevice " + status.DeviceID
             };
-            bm.Properties["deviceId"] = deviceID;
+            bm.Properties["DeviceType"] = status.MessageType;
 
-
-            var queueName = "sbqueue3";
             var queue3Client = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
             queue3Client.Send(bm);

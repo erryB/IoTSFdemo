@@ -8,19 +8,22 @@ using System.Threading.Tasks;
 using System.Net.Mail;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UsefulResources;
 
 namespace AlarmGenerator 
 {
     class Program
     {
         public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-        
+        public static string queueName = "sbqueue3";
+        public static string topicName = "sbalarmclassic";
 
         static void Main(string[] args)
         {
-            Console.WriteLine("AlarmGenerator - reads messages from Q3 and generates alarms. Ctrl-C to exit.\n");
-            var queueName = "sbqueue3";
+            Console.WriteLine($"AlarmGenerator - reads messages from {queueName} and generates alarms. Ctrl-C to exit.\n");
+             
             var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
+            string alarm = null;
 
             queueClient.OnMessage(message =>
             {
@@ -28,47 +31,60 @@ namespace AlarmGenerator
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
                 string s = reader.ReadToEnd();
 
-                var msg = JsonConvert.DeserializeObject(s);
-                JObject json = JObject.Parse(s);
+                DeviceMessage currentMessage = new DeviceMessage(s);
+                alarm = "no alarm";
 
-                //Console.WriteLine("message read from Q3: {0}", s);
-
-                try
+                if (currentMessage.MessageType == MessagePropertyName.TempHumType)
                 {
-                    if (json["DeviceID"].Value<string>() == "Batman")
+                    if(Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.TempIncreasingSec]) > AlarmParameters.IncTempSecTH)
                     {
-                        var hum = json["Humidity"].Value<double>();
-                        var incT = json["CountTempIncreasing"].Value<int>();
-                        if (hum > 50 && incT >= 2)
-                        {//send alarm
-                            string alarm = "ALARM from Batman - hum: " + hum + " increasing Temperature from " + incT + " cycles.";
-                            Console.WriteLine(alarm);
-                            
-                        }
+                        alarm = $"ALARM - Temperature is too high and keeps increasing - {s}";
                     }
-                    else if (json["DeviceID"].Value<string>() == "Joker")
-                    {
-                        var temp = json["Temperature"].Value<double>();
-                        var openD = json["DoorOpen"].Value<int>();
-                        if (temp > 25 && openD >= 2)
-                        {
-                            string alarm = "ALARM from Joker - temperature: " + temp + " and the door is open from " + openD + " cycles.";
-                            Console.WriteLine(alarm);
-                        }
-                    }
-                } catch (Exception e)
+                    
+                } else if(currentMessage.MessageType == MessagePropertyName.TempOpenDoorType)
                 {
-
+                    if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.OpenDoorSec]) > AlarmParameters.OpenDoorTH)
+                    {
+                        alarm = $"ALARM - Temperature is too high and the door is open. CLOSE THE DOOR - {s}";
+                    }
+                } else
+                {
+                    alarm = "ERROR";
                 }
-                
-                
 
+                Console.WriteLine(alarm);
+
+                if(alarm != null && alarm != "no alarm")
+                {
+                    SendToTopic(currentMessage, s, sbConnectionString, topicName);
+                }
 
             });
 
             Console.ReadLine();
         }
 
-        
+        public static void SendToTopic(DeviceMessage msg, string messageString, string sbConnectionString, string topicName)
+        {
+            var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
+
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(messageString);
+            writer.Flush();
+            stream.Position = 0;
+
+
+            var bm = new BrokeredMessage(stream)
+            {
+                Label = "ValidMessagefrom" + msg.DeviceID
+            };
+            bm.Properties["type"] = msg.MessageType;
+
+            client.Send(bm);
+
+        }
+
+
     }
 }

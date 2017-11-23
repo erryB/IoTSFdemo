@@ -33,8 +33,9 @@ namespace CAReader
                     deviceMsg = new DeviceMessage(s, timestamp);
                     Console.WriteLine($"validated message: {s}, timestamp {timestamp}");
 
-                    SendToTopic(JsonConvert.SerializeObject(deviceMsg), sbConnectionString, topicName);
-                    Console.WriteLine($"message sent to {topicName}\n");
+                    string messageString = JsonConvert.SerializeObject(deviceMsg);
+                    SendToTopic(messageString, sbConnectionString, topicName);
+                    Console.WriteLine($"message sent to {topicName}: {messageString}\n");
 
                 }
                 catch (Exception)
