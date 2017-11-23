@@ -8,9 +8,9 @@ namespace CommonResources
     /// Contains the configuration properties for a device.
     /// </summary>
     [DataContract]
-    public class DeviceConfiguration
+    public class DeviceConfigurationData
     {
-
+       
         /// <summary>
         /// Gets or sets the properties.
         /// </summary>

@@ -66,7 +66,15 @@ namespace IoTDemoConsole.Helpers
                         case ParameterMetadataAttribute.ParameterType.Parameter:
                             assignLambda = s =>
                             {
-                                var value = Convert.ChangeType(s, propertyInfo.PropertyType);
+                                object value;
+                                if (Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null)
+                                {
+                                    value = Convert.ChangeType(s, Nullable.GetUnderlyingType(propertyInfo.PropertyType));
+                                }
+                                else
+                                {
+                                    value = Convert.ChangeType(s, propertyInfo.PropertyType);
+                                }
                                 propertyInfo.SetValue(arguments, value);
                             };
                             break;

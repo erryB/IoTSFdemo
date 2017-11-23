@@ -18,7 +18,10 @@ namespace IoTDemoConsole
             new CommandSelector(new StandardConsoleOutput())
                 .SetConsoleDescription("Console di test per la demo")
                 .RegisterCommand<SetDeviceConfigurationCommand>("setconfig")
+                .RegisterCommand<GetDeviceConfigurationCommand>("getconfig")
+                .RegisterCommand<SendDeviceMessageCommand>("sendcommand")
                 .ThenSelectAndExecute(args);
+
         }
     }
 }

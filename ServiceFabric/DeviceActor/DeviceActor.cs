@@ -180,11 +180,11 @@ namespace DeviceActor
         /// Gets the configuration asynchronous.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task&lt;DeviceConfiguration&gt;.</returns>
+        /// <returns>Task&lt;DeviceConfigurationData&gt;.</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<DeviceConfiguration> GetConfigurationAsync(CancellationToken cancellationToken)
+        public async Task<DeviceConfigurationData> GetConfigurationAsync(CancellationToken cancellationToken)
         {
-            DeviceConfiguration config = new DeviceConfiguration();
+            DeviceConfigurationData config = new DeviceConfigurationData();
 
             await GetConfigurationAsync<double>(DeviceConfigurationPropertyNames.TemperatureThresholdName, config, cancellationToken);
             await GetConfigurationAsync<double>(DeviceConfigurationPropertyNames.HumidityThresholdName, config, cancellationToken);
@@ -200,7 +200,7 @@ namespace DeviceActor
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task&lt;System.Boolean&gt;.</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<bool> SetConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken)
+        public async Task<bool> SetConfigurationAsync(DeviceConfigurationData config, CancellationToken cancellationToken)
         {
             if (config == null)
                 throw new NullReferenceException(nameof(config));
@@ -217,17 +217,16 @@ namespace DeviceActor
 
         #region [ Private methods ]
 
-        private async Task<bool> SetConfigurationValueAsync<T>(string configurationName, DeviceConfiguration config, CancellationToken cancellationToken)
+        private async Task<bool> SetConfigurationValueAsync<T>(string configurationName, DeviceConfigurationData config, CancellationToken cancellationToken)
         {
             bool result = true;
 
-            if (config.Properties.ContainsKey(DeviceConfigurationPropertyNames.TemperatureThresholdName))
+            if (config.Properties.ContainsKey(configurationName))
             {
-                object objvalue = config.Properties[DeviceConfigurationPropertyNames.TemperatureThresholdName];
+                object objvalue = config.Properties[configurationName];
                 if (objvalue is T variable)
                 {
-                    await this.StateManager.SetStateAsync<T>(DeviceConfigurationPropertyNames.TemperatureThresholdName,
-                        variable, cancellationToken);
+                    await this.StateManager.SetStateAsync<T>(configurationName,variable, cancellationToken);
                 }
                 else
                 {
@@ -238,7 +237,7 @@ namespace DeviceActor
             return result;
         }
 
-        private async Task GetConfigurationAsync<T>(string configurationName, DeviceConfiguration config, CancellationToken cancellationToken)
+        private async Task GetConfigurationAsync<T>(string configurationName, DeviceConfigurationData config, CancellationToken cancellationToken)
         {
             var value = await this.StateManager.TryGetStateAsync<T>(configurationName, cancellationToken);
             if (value.HasValue)

@@ -14,14 +14,20 @@ namespace CommonResources
     {
         [DataMember]
         public string DeviceID { get; set; }
+
         [DataMember]
-        public int MessageID { get; set; }
+        public Guid MessageID { get; set; } = Guid.NewGuid();
         [DataMember]
-        public DateTime Timestamp { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.Now;
         [DataMember]
         public string MessageType { get; set; }
         [DataMember]
         public Dictionary<string, string> MessageData { get; set; }
+
+        public DeviceMessage()
+        {
+            
+        }
 
         public DeviceMessage(string messageString, DateTime timestamp)
         {
@@ -32,7 +38,7 @@ namespace CommonResources
             try
             {
                 this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
-                this.MessageID = json[MessagePropertyName.MessageID].Value<int>();
+                this.MessageID = json[MessagePropertyName.MessageID].Value<Guid>();
                 this.Timestamp = timestamp;
 
                 //MessageType is different for Batman and Joker devices 

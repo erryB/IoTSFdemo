@@ -71,13 +71,20 @@ namespace IoTDemoConsole.Commands
             try
             {
                 optionSet.Parse(arguments);
-                helpOptionSet.Parse(arguments);
             }
             catch (OptionException optEx)
             {
                 this.DisplayError("Gli argomenti del comando sono errati");
                 this.DisplayError(optEx.Message);
                 optionSet.WriteOptionDescriptions(Console.Out);
+            }
+            try
+            {
+                helpOptionSet.Parse(arguments);
+            }
+            catch
+            {
+                helpArgumentsModel.ShowHelp = false;
             }
 
             if (helpArgumentsModel.ShowHelp)
