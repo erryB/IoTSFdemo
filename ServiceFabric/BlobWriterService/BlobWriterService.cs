@@ -8,6 +8,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Fabric.Description;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using BlobWriter.interfaces;
@@ -22,8 +23,8 @@ namespace BlobWriterService
     /// </summary>
     internal sealed class BlobWriterService : StatelessService, IBlobWriterService
     {
-        public Queue internalBlobQueue;
-        CloudAppendBlob appendBlob;
+        private ConcurrentQueue<DeviceMessage> internalBlobQueue;
+        private CloudAppendBlob appendBlob;
 
         public BlobWriterService(StatelessServiceContext context)
             : base(context)
@@ -91,18 +92,20 @@ namespace BlobWriterService
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
 
-            internalBlobQueue = new Queue();
+            internalBlobQueue = new ConcurrentQueue<DeviceMessage>();
             await CreateBlob();
-
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (internalBlobQueue.Count != 0)
                 {
-                    var currentMsg = (DeviceMessage)internalBlobQueue.Dequeue();
-                    appendBlob.AppendText(currentMsg + "\n");
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
+                    DeviceMessage currentMsg = null;
+                    if (internalBlobQueue.TryDequeue(out currentMsg))
+                    {
+                        appendBlob.AppendText(currentMsg + "\n");
+                        ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
+                    }
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
@@ -114,7 +117,7 @@ namespace BlobWriterService
         {
             if (internalBlobQueue == null)
             {
-                internalBlobQueue = new Queue();
+                internalBlobQueue = new ConcurrentQueue<DeviceMessage>();
             }
             internalBlobQueue.Enqueue(message);
 
