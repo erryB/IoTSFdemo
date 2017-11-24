@@ -31,6 +31,7 @@ namespace DispatcherService
             : base(context)
         { }
 
+        private QueueClient queueClient;
         
         /// <summary>
         /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
@@ -52,32 +53,50 @@ namespace DispatcherService
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - running");
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
+            CreateQueueClient(cancellationToken);
 
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
-                queueClient.OnMessage(async message =>
-                {
-                    Stream stream = message.GetBody<Stream>();
-                    StreamReader reader = new StreamReader(stream, Encoding.ASCII);
-                    string s = await reader.ReadToEndAsync();
-                    DateTime timestamp = message.EnqueuedTimeUtc;
-
-                    var deviceMsg = new DeviceMessage(s, timestamp);
-                    
-                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
-                    var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-
-                    //parallel execution of 2 independent tasks
-                    await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
-
-
-                });
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
+        }
+
+        private void CreateQueueClient(CancellationToken cancellationToken)
+        {
+            queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
+
+            queueClient.OnMessage(async message =>
+            {
+                Stream stream = message.GetBody<Stream>();
+                StreamReader reader = new StreamReader(stream, Encoding.ASCII);
+                string s = await reader.ReadToEndAsync();
+                DateTime timestamp = message.EnqueuedTimeUtc;
+
+                //debug
+                ServiceEventSource.Current.ServiceMessage(this.Context, $"DispatcherService - received message");
+
+                var deviceMsg = new DeviceMessage(s, timestamp);
+
+                //debug
+                ServiceEventSource.Current.ServiceMessage(this.Context, $"DispatcherService - DeviceMessage created. DeviceID {deviceMsg.DeviceID}");
+
+                var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
+                var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
+
+                //debug
+                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - ProxyActor and ProxyBlob created");
+
+                //parallel execution of 2 independent tasks
+                await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
+
+                //debug
+                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - parallel execution");
+
+
+            });
         }
 
         private void ReadSettings()
@@ -93,6 +112,14 @@ namespace DispatcherService
         private void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
         {
             this.ReadSettings();
+            if(queueClient != null)
+            {
+                
+            }
+            CreateQueueClient(default(CancellationToken));
+
         }
+
+
     }
 }
