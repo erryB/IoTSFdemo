@@ -21,13 +21,13 @@ namespace DeviceActor.Interfaces
         /// <param name="config">The configuration.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task&lt;System.Boolean&gt;.</returns>
-        Task<bool> SetConfigurationAsync(DeviceConfiguration config, CancellationToken cancellationToken);
+        Task<bool> SetConfigurationAsync(DeviceConfigurationData config, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the configuration asynchronous.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task&lt;DeviceConfiguration&gt;.</returns>
-        Task<DeviceConfiguration> GetConfigurationAsync(CancellationToken cancellationToken);
+        /// <returns>Task&lt;DeviceConfigurationData&gt;.</returns>
+        Task<DeviceConfigurationData> GetConfigurationAsync(CancellationToken cancellationToken);
     }
 }

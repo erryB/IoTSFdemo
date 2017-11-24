@@ -8,15 +8,15 @@ namespace CommonResources
     /// Contains the configuration properties for a device.
     /// </summary>
     [DataContract]
-    public class DeviceConfiguration
+    public class DeviceConfigurationData
     {
-
+       
         /// <summary>
         /// Gets or sets the properties.
         /// </summary>
         /// <value>The properties.</value>
         [DataMember]
-        public Dictionary<string, object> Properties { get; set; }
+        public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 
         #region [ Public Methods ]
 

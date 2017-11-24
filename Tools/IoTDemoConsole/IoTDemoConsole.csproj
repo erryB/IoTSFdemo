@@ -94,8 +94,12 @@
     <Compile Include="Attributes\ParameterMetadataAttribute.cs" />
     <Compile Include="Attributes\ParameterRangeAttribute.cs" />
     <Compile Include="Attributes\ParameterRequiredAttribute.cs" />
+    <Compile Include="CommandParameters\GetDeviceConfigurationParameters.cs" />
+    <Compile Include="CommandParameters\SendDeviceMessageParameters.cs" />
     <Compile Include="CommandParameters\SetDeviceConfigurationParameters.cs" />
-    <Compile Include="CommandParameters\ActorParametersBase.cs" />
+    <Compile Include="CommandParameters\DeviceCommandParametersBase.cs" />
+    <Compile Include="Commands\GetDeviceConfigurationCommand.cs" />
+    <Compile Include="Commands\SendDeviceMessageCommand.cs" />
     <Compile Include="Commands\SetDeviceConfigurationCommand.cs" />
     <Compile Include="Commands\CommandSelector.cs" />
     <Compile Include="Commands\ConsoleCommandBase.cs" />

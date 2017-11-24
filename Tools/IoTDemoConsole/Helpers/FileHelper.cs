@@ -24,5 +24,19 @@ namespace IoTDemoConsole.Helpers
             }
             return result;
         }
+
+        /// <summary>
+        /// write all text as an asynchronous operation.
+        /// </summary>
+        /// <param name="fullFileName">Full name of the file.</param>
+        /// <param name="content">The content.</param>
+        /// <returns>Task.</returns>
+        public static async Task WriteAllTextAsync(string fullFileName,string content)
+        {
+            using (var reader = File.CreateText(fullFileName))
+            {
+                await reader.WriteAsync(content);
+            }
+        }
     }
 }
