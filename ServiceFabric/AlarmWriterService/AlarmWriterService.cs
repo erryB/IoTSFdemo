@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,22 @@ namespace AlarmWriterService
 
         }
 
-        public async Task SendToTopic(string alarmMessage, string topicName, CancellationToken cancellationToken)
+        private void ReadSettings()
+        {
+            ConfigurationSettings settingsFile = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings;
+
+            ConfigurationSection configSection = settingsFile.Sections["Connections"];
+
+            this.sbConnectionString = configSection.Parameters["ServiceBusConnectionString"].Value;
+            this.topicName = configSection.Parameters["ServiceBusTopicName"].Value;
+        }
+
+        private void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
+        {
+            this.ReadSettings();
+        }
+
+        public async Task SendToTopic(string alarmMessage, CancellationToken cancellationToken)
         {
             var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
 
@@ -81,10 +97,10 @@ namespace AlarmWriterService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
+            this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
+            this.ReadSettings();
 
             ReliableQueue = await this.StateManager.GetOrAddAsync<IReliableQueue<string>>("myReliableQueue");
-            sbConnectionString = "59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
-            topicName = "sbalarmtopic";
 
             while (true)
             {
@@ -97,19 +113,19 @@ namespace AlarmWriterService
                 }
                 if (itemFromQueue.HasValue)
                 {
-                    //avrò alarmMessage
-                    JObject json = JObject.Parse(itemFromQueue.Value);
-                    var deviceID = json["DeviceID"].Value<string>();
-                    var msgID = json["MessageID"].Value<int>();
-                    var timestamp = json["Timestamp"].Value<DateTime>();
-                    var msg = json["AlarmMessage"].Value<string>();
+                    ////avrò alarmMessage
+                    //JObject json = JObject.Parse(itemFromQueue.Value);
+                    //var deviceID = json["DeviceID"].Value<string>();
+                    //var msgID = json["MessageID"].Value<int>();
+                    //var timestamp = json["Timestamp"].Value<DateTime>();
+                    //var msg = json["AlarmMessage"].Value<string>();
 
-                    string line = $"{deviceID} - MessageID {msgID}: {msg} - timestamp: {timestamp}";
+                    //string line = $"{deviceID} - MessageID {msgID}: {msg} - timestamp: {timestamp}";
 
                     //debug print
-                    ServiceEventSource.Current.ServiceMessage(this.Context, line);
+                    ServiceEventSource.Current.ServiceMessage(this.Context, itemFromQueue.Value);
 
-                    await SendToTopic(line, topicName, cancellationToken);
+                    await SendToTopic(itemFromQueue.Value ,  cancellationToken);
 
                     using (var tx = this.StateManager.CreateTransaction())
                     {

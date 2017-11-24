@@ -31,7 +31,7 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AlarmService\AlarmService.csproj" />
+    <ProjectReference Include="..\AlarmWriterService\AlarmWriterService.csproj" />
     <ProjectReference Include="..\BlobWriterService\BlobWriterService.csproj" />
     <ProjectReference Include="..\DeviceActor\DeviceActor.csproj" />
     <ProjectReference Include="..\DispatcherService\DispatcherService.csproj" />
