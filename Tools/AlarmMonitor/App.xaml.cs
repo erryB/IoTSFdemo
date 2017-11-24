@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
+using AlarmMonitor.Infrastructure;
+using AlarmMonitor.Services;
+using AlarmMonitor.ViewModels;
+using Autofac;
 
 namespace AlarmMonitor
 {
@@ -13,5 +11,32 @@ namespace AlarmMonitor
     /// </summary>
     public partial class App : Application
     {
+        private static IContainer _Container;
+        public static IContainer Container
+        {
+            get
+            {
+                if (_Container == null)
+                {
+                    var builder = new ContainerBuilder();
+                    ConfigureContainer(builder);
+                    _Container = builder.Build();
+                }
+                return _Container;
+            }
+        }
+
+        private static void ConfigureContainer(ContainerBuilder builder)
+        {
+            builder.RegisterType<ServiceBusAlarmReceiver>().As<IAlarmReceiver>().InstancePerDependency();
+
+            // Infrastructure
+            builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
+            builder.RegisterType<NavigationService>().As<INavigationService>().SingleInstance();
+
+            //ViewModels
+            builder.RegisterType<MainWindowViewModel>();
+
+        }
     }
 }
