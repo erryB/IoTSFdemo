@@ -1,32 +1,47 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="EBIoTApplicationType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
+    <Parameter Name="AlarmWriterService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="AlarmWriterService_PartitionCount" DefaultValue="1" />
+    <Parameter Name="AlarmWriterService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="BlobWriterService_InstanceCount" DefaultValue="1" />
-    <Parameter Name="AlarmService_InstanceCount" DefaultValue="1" />
     <Parameter Name="DispatcherService_InstanceCount" DefaultValue="1" />
-    <Parameter Name="AlarmService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
-    <Parameter Name="AlarmService_ServiceBusTopicName" DefaultValue="sbalarmtopic" />
     <Parameter Name="DispatcherService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
     <Parameter Name="DispatcherService_ServiceBusQueueName" DefaultValue="sbqueue1" />
     <Parameter Name="DeviceActor_PartitionCount" DefaultValue="10" />
     <Parameter Name="DeviceActor_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="DeviceActor_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="BlobWriterService_StorageConnectionString" DefaultValue="DefaultEndpointsProtocol=https;AccountName=ebstorage;AccountKey=We6kw0FTOd3lZk8esznn6NdtmFvvj3H6YXFKuS1kDQWaBJVt0cXX5H2rwBm2wZd3s/U8CUIcdK3cnfuccTTFAg==" />
+    <Parameter Name="BlobWriterService_StorageContainerName" DefaultValue="ebcontainer" />
+    <Parameter Name="BlobWriterService_LogBlobName" DefaultValue="loggingData.txt" />
+    <Parameter Name="AlarmWriterService_ServiceBusConnectionString" DefaultValue="Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=" />
+    <Parameter Name="AlarmWriterService_ServiceBusTopicName" DefaultValue="sbalarmtopic" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="BlobWriterServicePkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
-  </ServiceManifestImport>
-  <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="AlarmServicePkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="AlarmWriterServicePkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides>
       <ConfigOverride Name="Config">
         <Settings>
           <Section Name="Connections">
-            <Parameter Name="ServiceBusConnectionString" Value="[AlarmService_ServiceBusConnectionString]" />
-            <Parameter Name="ServiceBusTopicName" Value="[AlarmService_ServiceBusTopicName]" />
+            <Parameter Name="ServiceBusConnectionString" Value="[AlarmWriterService_ServiceBusConnectionString]" />
+            <Parameter Name="ServiceBusTopicName" Value="[AlarmWriterService_ServiceBusTopicName]" />
+          </Section>
+        </Settings>
+      </ConfigOverride>
+    </ConfigOverrides>
+  </ServiceManifestImport>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="BlobWriterServicePkg" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides>
+      <ConfigOverride Name="Config">
+        <Settings>
+          <Section Name="Connections">
+            <Parameter Name="StorageConnectionString" Value="[BlobWriterService_StorageConnectionString]" />
+            <Parameter Name="StorageContainerName" Value="[BlobWriterService_StorageContainerName]" />
+            <Parameter Name="LogBlobName" Value="[BlobWriterService_LogBlobName]" />
           </Section>
         </Settings>
       </ConfigOverride>
@@ -54,13 +69,13 @@
          ServiceFabric PowerShell module.
          
          The attribute ServiceTypeName below must match the name defined in the imported ServiceManifest.xml file. -->
+    <Service Name="AlarmWriterService" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="AlarmWriterServiceType" TargetReplicaSetSize="[AlarmWriterService_TargetReplicaSetSize]" MinReplicaSetSize="[AlarmWriterService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[AlarmWriterService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
     <Service Name="BlobWriterService">
       <StatelessService ServiceTypeName="BlobWriterServiceType" InstanceCount="[BlobWriterService_InstanceCount]">
-        <SingletonPartition />
-      </StatelessService>
-    </Service>
-    <Service Name="AlarmService">
-      <StatelessService ServiceTypeName="AlarmServiceType" InstanceCount="[AlarmService_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
     </Service>

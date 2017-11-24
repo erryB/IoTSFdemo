@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DeviceActor.Interfaces;
 using CommonResources;
-using AlarmServiceInterfaces;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Services.Remoting.Client;

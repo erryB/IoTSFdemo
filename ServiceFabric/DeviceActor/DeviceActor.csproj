@@ -55,10 +55,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AlarmServiceInterfaces\AlarmService.Interfaces.csproj">
-      <Project>{9470A8CB-A902-484D-9666-76B7EFB72FEE}</Project>
-      <Name>AlarmService.Interfaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\AlarmWriterService.interface\AlarmWriterService.Interfaces.csproj">
       <Project>{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}</Project>
       <Name>AlarmWriterService.Interfaces</Name>
