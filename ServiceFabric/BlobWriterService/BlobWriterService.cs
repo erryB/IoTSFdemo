@@ -8,6 +8,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.WindowsAzure.Storage; // Namespace for CloudStorageAccount
 using Microsoft.WindowsAzure.Storage.Blob; // Namespace for Blob storage types
 using System.Collections;
+using System.Fabric.Description;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using BlobWriter.interfaces;
 using CommonResources;
@@ -38,27 +39,48 @@ namespace BlobWriterService
         }
 
 
-        public async Task CreateBlob(string containerName, string blobName)
+        private void ReadSettings()
+        {
+            ConfigurationSettings settingsFile = this.Context.CodePackageActivationContext.GetConfigurationPackageObject("Config").Settings;
+
+            ConfigurationSection configSection = settingsFile.Sections["Connections"];
+
+            this.storageConnectionString = configSection.Parameters["StorageConnectionString"].Value;
+            this.storageContainerName = configSection.Parameters["StorageContainerName"].Value;
+            this.logBlobName = configSection.Parameters["LogBlobName"].Value;
+        }
+
+        private async void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
+        {
+            this.ReadSettings();
+            await CreateBlob();
+        }
+
+        public async Task CreateBlob()
         {
             //Parse the connection string for the storage account.
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Microsoft.Azure.CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.storageConnectionString);
 
             //Create service client for credentialed access to the Blob service.
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             //Get a reference to a container.
-            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(this.storageContainerName);
 
             //Create the container if it does not already exist.
             container.CreateIfNotExists();
 
             //Get a reference to an append blob.
-            appendBlob = container.GetAppendBlobReference(blobName);
+            appendBlob = container.GetAppendBlobReference(this.logBlobName);
 
             //Create the append blob. Note that if the blob already exists, the CreateOrReplace() method will overwrite it.
             //You can check whether the blob exists to avoid overwriting it by using CloudAppendBlob.Exists().
             await appendBlob.CreateOrReplaceAsync();
         }
+
+        private string storageConnectionString;
+        private string storageContainerName;
+        private string logBlobName;
 
         /// <summary>
         /// This is the main entry point for your service instance.
@@ -66,28 +88,28 @@ namespace BlobWriterService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            
-            internalBlobQueue = new Queue();
+            this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
+            this.ReadSettings();
 
-            await CreateBlob("ebcontainer", "loggingData.txt");
-            DeviceMessage currentMsg = null;
-            
+            internalBlobQueue = new Queue();
+            await CreateBlob();
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if(internalBlobQueue.Count != 0)
+                if (internalBlobQueue.Count != 0)
                 {
-                    currentMsg = (DeviceMessage) internalBlobQueue.Dequeue();
+                    var currentMsg = (DeviceMessage)internalBlobQueue.Dequeue();
                     appendBlob.AppendText(currentMsg + "\n");
                     ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
                 }
-                
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
         }
 
-       
+
         public Task ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken)
         {
             if (internalBlobQueue == null)
@@ -95,8 +117,8 @@ namespace BlobWriterService
                 internalBlobQueue = new Queue();
             }
             internalBlobQueue.Enqueue(message);
-            
-            return Task.Delay(0,cancellationToken);
+
+            return Task.Delay(0, cancellationToken);
         }
     }
 }

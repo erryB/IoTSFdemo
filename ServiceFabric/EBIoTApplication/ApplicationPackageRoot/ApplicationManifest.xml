@@ -11,13 +11,26 @@
     <Parameter Name="DeviceActor_PartitionCount" DefaultValue="10" />
     <Parameter Name="DeviceActor_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="DeviceActor_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="BlobWriterService_StorageConnectionString" DefaultValue="DefaultEndpointsProtocol=https;AccountName=ebstorage;AccountKey=We6kw0FTOd3lZk8esznn6NdtmFvvj3H6YXFKuS1kDQWaBJVt0cXX5H2rwBm2wZd3s/U8CUIcdK3cnfuccTTFAg==" />
+    <Parameter Name="BlobWriterService_StorageContainerName" DefaultValue="ebcontainer" />
+    <Parameter Name="BlobWriterService_LogBlobName" DefaultValue="loggingData.txt" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="BlobWriterServicePkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
+    <ConfigOverrides>
+      <ConfigOverride Name="Config">
+        <Settings>
+          <Section Name="Connections">
+            <Parameter Name="StorageConnectionString" Value="[BlobWriterService_StorageConnectionString]" />
+            <Parameter Name="StorageContainerName" Value="[BlobWriterService_StorageContainerName]" />
+            <Parameter Name="LogBlobName" Value="[BlobWriterService_LogBlobName]" />
+          </Section>
+        </Settings>
+      </ConfigOverride>
+    </ConfigOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="AlarmServicePkg" ServiceManifestVersion="1.0.0" />
