@@ -89,11 +89,15 @@ namespace DispatcherService
                 //debug
                 ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - ProxyActor and ProxyBlob created");
 
+                await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
+
+                //await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
+
                 //parallel execution of 2 independent tasks
-                await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
+                //await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
 
                 //debug
-                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - parallel execution");
+                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
 
 
             });

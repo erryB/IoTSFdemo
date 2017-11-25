@@ -69,6 +69,8 @@ namespace DeviceActor
             //var proxyAlarmWriter = ServiceProxy.Create<IAlarmService>(new Uri("fabric:/EBIoTApplication/AlarmService"));
             //await proxyAlarmWriter.ReceiveAlarmAsync(alarmMsg, deviceID);
 
+
+
             var messageString = JsonConvert.SerializeObject(alarmMsg);
 
             var proxyAlarmWriter = ServiceProxy.Create<IAlarmWriterService>(new Uri("fabric:/EBIoTApplication/AlarmWriterService"));

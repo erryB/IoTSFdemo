@@ -67,7 +67,7 @@ namespace CommonResources
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 this.DeviceID = "MESSAGE ERROR";
                 this.MessageType = MessagePropertyName.UnknownType;

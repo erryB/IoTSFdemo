@@ -5,19 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.ServiceBus.Messaging;
+using System.Configuration;
 
 namespace ReadQueue
 {
     class Program
     {
         static string queueName = "sbqueue1";
-        static string connectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=iothubroutes_EBIoTHubDemo;SharedAccessKey=kesA6tP8p7LkWsiDCoYSRsEgxSvcx07LYZJLoLiwQLk=;EntityPath=sbqueue1";
 
         static void Main(string[] args)
         {
             Console.WriteLine($"Reading {queueName}. Ctrl-C to exit.\n");
 
-            var client = QueueClient.CreateFromConnectionString(connectionString);
+            var client = QueueClient.CreateFromConnectionString(ConfigurationManager.AppSettings["connectionString"]);
 
             client.OnMessage(message =>
             {

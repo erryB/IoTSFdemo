@@ -23,7 +23,8 @@ namespace BlobWriterService
     /// </summary>
     internal sealed class BlobWriterService : StatelessService, IBlobWriterService
     {
-        private ConcurrentQueue<DeviceMessage> internalBlobQueue;
+        //private ConcurrentQueue<DeviceMessage> internalBlobQueue;
+        private Queue<DeviceMessage> internalBlobQueue;
         private CloudAppendBlob appendBlob;
 
         public BlobWriterService(StatelessServiceContext context)
@@ -89,22 +90,27 @@ namespace BlobWriterService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
+            //debug
+            ServiceEventSource.Current.ServiceMessage(this.Context, "BlobWriterService - Started");
+
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
 
-            internalBlobQueue = new ConcurrentQueue<DeviceMessage>();
+            internalBlobQueue = new Queue<DeviceMessage>();
             await CreateBlob();
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (internalBlobQueue.Count != 0)
-                {
+                {                   
                     DeviceMessage currentMsg = null;
-                    if (internalBlobQueue.TryDequeue(out currentMsg))
+                    if(internalBlobQueue.Count > 0)
                     {
-                        appendBlob.AppendText(currentMsg + "\n");
-                        ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
+                        currentMsg = internalBlobQueue.Dequeue();
+                        appendBlob.AppendText(Convert.ToString(currentMsg)+'\n');
+                        
+                        ServiceEventSource.Current.ServiceMessage(this.Context, "BlobWriterService - Message to Blob: {0}", currentMsg);
                     }
                 }
 
@@ -114,12 +120,16 @@ namespace BlobWriterService
 
 
         public Task ReceiveMessageAsync(DeviceMessage message, CancellationToken cancellationToken)
-        {
+        {           
             if (internalBlobQueue == null)
             {
-                internalBlobQueue = new ConcurrentQueue<DeviceMessage>();
+                internalBlobQueue = new Queue<DeviceMessage>();
             }
             internalBlobQueue.Enqueue(message);
+            
+            //debug
+            ServiceEventSource.Current.ServiceMessage(this.Context, $"BlobWriterService - Enqueued message {message}");
+           
 
             return Task.Delay(0, cancellationToken);
         }
