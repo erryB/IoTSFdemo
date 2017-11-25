@@ -26,7 +26,7 @@ namespace CommonResources
 
         public DeviceMessage()
         {
-            
+            this.MessageData = new Dictionary<string, string>();
         }
 
         public DeviceMessage(string messageString, DateTime timestamp)

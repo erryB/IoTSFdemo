@@ -11,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using AlarmWriterService.Interfaces;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.ServiceFabric.Services.Client;
 
 namespace DeviceActor
 {
@@ -24,7 +25,7 @@ namespace DeviceActor
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
     [ActorService(Name = "DeviceActor")]
-    internal class DeviceActor : Actor, IDeviceActor, IDeviceConfiguration
+    internal class DeviceActor : Actor, IDeviceConfiguration, IDeviceActor
     {
 
 
@@ -46,7 +47,6 @@ namespace DeviceActor
         {
             Object alarmMsg = null;
 
-            //string deviceID = currentDeviceMessage.DeviceID;
             if (currentDeviceMessage.MessageType == MessagePropertyName.TempHumType)
             {
                 alarmMsg = await CheckMessageForTemperatureHumidityDevice(currentDeviceMessage, cancellationToken);
@@ -66,16 +66,11 @@ namespace DeviceActor
                 };
             }
 
-            //var proxyAlarmWriter = ServiceProxy.Create<IAlarmService>(new Uri("fabric:/EBIoTApplication/AlarmService"));
-            //await proxyAlarmWriter.ReceiveAlarmAsync(alarmMsg, deviceID);
-
-
-
-            var messageString = JsonConvert.SerializeObject(alarmMsg);
-
-            var proxyAlarmWriter = ServiceProxy.Create<IAlarmWriterService>(new Uri("fabric:/EBIoTApplication/AlarmWriterService"));
-            await proxyAlarmWriter.SendAlarmAsync(messageString, cancellationToken);
-
+            if (alarmMsg != null)
+            {
+                var messageString = JsonConvert.SerializeObject(alarmMsg);
+                await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, cancellationToken);
+            }
         }
 
         private async Task<object> CheckMessageForTemperatureOpenDoorDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)

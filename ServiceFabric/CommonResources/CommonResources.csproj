@@ -48,6 +48,7 @@
     <Compile Include="Device.cs" />
     <Compile Include="DeviceConfigurationData.cs" />
     <Compile Include="DeviceMessage.cs" />
+    <Compile Include="HashHelper.cs" />
     <Compile Include="Joker.cs" />
     <Compile Include="JokerState.cs" />
     <Compile Include="DeviceConfigurationPropertyNames.cs" />

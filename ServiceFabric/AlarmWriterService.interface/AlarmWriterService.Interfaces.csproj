@@ -7,8 +7,8 @@
     <ProjectGuid>{76F0FF53-4469-4324-A7FC-839BE7FBDBBD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AlarmWriterService.interface</RootNamespace>
-    <AssemblyName>AlarmWriterService.@interface</AssemblyName>
+    <RootNamespace>AlarmWriterService.Interfaces</RootNamespace>
+    <AssemblyName>AlarmWriterService.Interfaces</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -76,11 +76,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlarmServiceWriterProxy.cs" />
     <Compile Include="IAlarmWriterService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommonResources\CommonResources.csproj">
+      <Project>{cfc3bcae-ef2e-4c28-bc93-890f7082ea61}</Project>
+      <Name>CommonResources</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
