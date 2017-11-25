@@ -16,39 +16,13 @@
         </Grid.RowDefinitions>
 
         <ListView  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5" ItemsSource="{Binding AlarmedDevices}"
-                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Focusable" Value="false"/>
-                </Style>
-            </ListView.ItemContainerStyle>
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource DeviceAlarmItemTemplate}"
+                   ItemContainerStyle="{StaticResource DeviceAlarmItemStyle}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal"  ></WrapPanel>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="5" Width="150" Height="200" CornerRadius="5" BorderThickness="2" BorderBrush="Gray">
-                        <Grid  Margin="5" VerticalAlignment="Top" HorizontalAlignment="center"  >
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <Image Grid.Row="0" Width="50" Height="50" VerticalAlignment="Center" HorizontalAlignment="center" Source="/AlarmMonitor;component/Images/redled.png"></Image>
-                            <TextBlock Grid.Row="1" Text="{Binding DeviceId}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" 
-                                   HorizontalAlignment="center" FontWeight="Bold" FontSize="18" Margin="0,5,0,0"></TextBlock>
-                            <TextBlock Grid.Row="2" Text="{Binding LastAlarmMessage.TimeStamp, StringFormat=\{0:HH:mm:ss\}}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" 
-                                   HorizontalAlignment="center" FontSize="14" Margin="0,5,0,0"></TextBlock>
-                            <TextBlock Grid.Row="3" Text="{Binding Path=LastAlarmMessage.Message}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" 
-                                   HorizontalAlignment="Stretch" FontSize="12" Margin="0,5,0,0"></TextBlock>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
         </ListView>
 
         <TextBlock  Grid.Row="1" Text="{Binding UserMessage}" Margin="5" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"></TextBlock>
