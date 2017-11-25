@@ -11,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using AlarmWriterService.Interfaces;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.ServiceFabric.Services.Client;
 
 namespace DeviceActor
 {
@@ -24,7 +25,7 @@ namespace DeviceActor
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
     [ActorService(Name = "DeviceActor")]
-    internal class DeviceActor : Actor, IDeviceActor, IDeviceConfiguration
+    internal class DeviceActor : Actor, IDeviceConfiguration, IDeviceActor
     {
 
 
@@ -71,9 +72,7 @@ namespace DeviceActor
 
             var messageString = JsonConvert.SerializeObject(alarmMsg);
 
-            var proxyAlarmWriter = ServiceProxy.Create<IAlarmWriterService>(new Uri("fabric:/EBIoTApplication/AlarmWriterService"));
-            await proxyAlarmWriter.SendAlarmAsync(messageString, cancellationToken);
-
+            await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, cancellationToken);
         }
 
         private async Task<object> CheckMessageForTemperatureOpenDoorDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)

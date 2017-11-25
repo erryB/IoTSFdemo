@@ -11,6 +11,12 @@ namespace AlarmMonitor
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
+            DispatcherHelper.Initialize();
+        }
+
         private static IContainer _Container;
         public static IContainer Container
         {
@@ -28,6 +34,7 @@ namespace AlarmMonitor
 
         private static void ConfigureContainer(ContainerBuilder builder)
         {
+            builder.RegisterType<AppConfigAdapter>().As<IConfigurationAdapter>().InstancePerDependency();
             builder.RegisterType<ServiceBusAlarmReceiver>().As<IAlarmReceiver>().InstancePerDependency();
 
             // Infrastructure

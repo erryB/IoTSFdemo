@@ -38,50 +38,63 @@ namespace AlarmMonitor.ViewModels
 
         public override async Task InitializeAsync()
         {
+            UserMessage = "Initializing ServiceBusReceiver....";
             AlarmedDevices = new ObservableCollection<DeviceInfo>();
             this.alarmReceiver.AlarmMessageReceived += AlarmReceiver_AlarmMessageReceived;
             await this.alarmReceiver.StartReceiverAsync();
             CloseViewCancellationTokenSource = new CancellationTokenSource();
             AlarmedDeviceRemoval = new Task(() => AlarmedDeviceRemovalCode(CloseViewCancellationTokenSource.Token));
             AlarmedDeviceRemoval.Start();
+            UserMessage = "Initialized ServiceBusReceiver....";
+            await Task.Delay(2000);
+            UserMessage = null;
         }
 
         private void AlarmedDeviceRemovalCode(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                for (int i = 0; i < AlarmedDevices.Count && !cancellationToken.IsCancellationRequested; i++)
+                for (int i = AlarmedDevices.Count - 1; i >= 0; i--)
                 {
-                    var alarmedDevice = AlarmedDevices.ElementAt(i);
-                    if (alarmedDevice.IsToBeRemoved())
+                    if (AlarmedDevices[i].IsToBeRemoved())
                     {
                         AlarmedDevices.RemoveAt(i);
-                        i--;
                     }
                 }
+
+
                 Task.Delay(10000, cancellationToken);
             }
         }
 
         private void AlarmReceiver_AlarmMessageReceived(object sender, AlarmMessage e)
         {
-            var device = AlarmedDevices.FirstOrDefault(d => d.DeviceId == e.DeviceId);
-            if (device != null)
+            DispatcherHelper.CheckBeginInvokeOnUI(() =>
             {
-                device.LastAlarmMessage = e;
-            }
-            else
-            {
-                AlarmedDevices.Add(new DeviceInfo() { DeviceId = e.DeviceId, LastAlarmMessage = e });
-            }
+                UserMessage = $"[{DateTime.Now:HH:mm:ss}] Received message from device {e.DeviceId} - {e.Message}";
+                var device = AlarmedDevices.FirstOrDefault(d => d.DeviceId == e.DeviceId);
+                if (device != null)
+                {
+                    device.LastAlarmMessage = e;
+                }
+                else
+                {
+                    AlarmedDevices.Add(new DeviceInfo() { DeviceId = e.DeviceId, LastAlarmMessage = e });
+                }
+            });
         }
 
         public ObservableCollection<DeviceInfo> AlarmedDevices
         {
-            get { return GetPropertyValue<ObservableCollection<DeviceInfo>>(); }
-            set { SetPropertyValue(value); }
+            get => GetPropertyValue<ObservableCollection<DeviceInfo>>();
+            set => SetPropertyValue(value);
         }
 
+        public string UserMessage
+        {
+            get => GetPropertyValue<string>();
+            set => SetPropertyValue(value);
+        }
     }
 
 }
