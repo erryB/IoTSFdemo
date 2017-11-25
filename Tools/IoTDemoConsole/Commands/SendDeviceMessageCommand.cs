@@ -91,9 +91,12 @@ namespace IoTDemoConsole.Commands
                     var actorProxy = ActorProxy.Create<IDeviceActor>(actorId, serviceUri);
                     this.DisplayMessage($"Inizio SendDeviceMessageAsync su attore {serviceUri} con id {actorId}");
                     var sw = Stopwatch.StartNew();
-                    await actorProxy.UpdateDeviceStateAsync(message, default(CancellationToken));
+                    for (int i = 0; i < arguments.NumberOfMessages ; i++)
+                    {
+                        await actorProxy.UpdateDeviceStateAsync(message, default(CancellationToken));
+                    }
                     sw.Stop();
-                    this.DisplayMessage($"Fine SendDeviceMessageAsync su attore {serviceUri} con id {actorId } - Durata {sw.ElapsedMilliseconds } msec");
+                    this.DisplayMessage($"Fine SendDeviceMessageAsync su attore {serviceUri} con id {actorId } - Durata {sw.ElapsedMilliseconds } msec - Num mesaggi {arguments.NumberOfMessages}");
                 }
 
             }

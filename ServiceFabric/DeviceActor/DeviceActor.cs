@@ -25,9 +25,8 @@ namespace DeviceActor
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
     [ActorService(Name = "DeviceActor")]
-    internal class DeviceActor : Actor, IDeviceConfiguration, IDeviceActor
+    internal class DeviceActor : Actor, IDeviceConfiguration, IDeviceActor, IRemindable
     {
-
 
         /// <summary>
         /// Initializes a new instance of DeviceActor
@@ -42,39 +41,77 @@ namespace DeviceActor
         private const string PreviousTemperatureStateKey = "PreviousTemperatureState";
         private const string PreviousHumidityStateKey = "PreviousHumidityState";
         private const string LastOpenDoorTimeStateKey = "LastOpenDoorTimeState";
+        private const string LastDeviceMassageStateKey = "LastDeviceMessageState";
+
+        private const string SendAlarmMessageReminderName = "SendAlarmMessageReminder";
+        private const string SendAlarmMessageQueueName = "SendAlarmMessageQueue";
+        private const int SendAlarmMessageReminderDueTimeInMSec = 125;
 
         public async Task UpdateDeviceStateAsync(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
+            ActorEventSource.Current.ActorMessage(this, $"Update message arrived. {currentDeviceMessage.MessageType }");
             Object alarmMsg = null;
 
-            if (currentDeviceMessage.MessageType == MessagePropertyName.TempHumType)
+            var lastDeviceMessage = await this.StateManager.GetStateAsync<DeviceMessage>(LastDeviceMassageStateKey, cancellationToken);
+            if (lastDeviceMessage == null || lastDeviceMessage.Timestamp < currentDeviceMessage.Timestamp) // drop automatically the oldest messages from the last arrived
             {
-                alarmMsg = await CheckMessageForTemperatureHumidityDevice(currentDeviceMessage, cancellationToken);
-            }
-            else if (currentDeviceMessage.MessageType == MessagePropertyName.TempOpenDoorType)
-            {
-                alarmMsg = await CheckMessageForTemperatureOpenDoorDevice(currentDeviceMessage, cancellationToken);
-            }
-            else if (currentDeviceMessage.MessageType == MessagePropertyName.UnknownType)
-            {
-                alarmMsg = new
+                await this.StateManager.SetStateAsync<DeviceMessage>(LastDeviceMassageStateKey, currentDeviceMessage, cancellationToken);
+                if (currentDeviceMessage.MessageType == MessagePropertyName.TempHumType)
                 {
-                    DeviceID = "unknown",
-                    MessageID = "unknown",
-                    AlarmMessage = "ALARM! Unknown device",
-                    Timestamp = DateTime.Now
-                };
-            }
+                    alarmMsg = await CheckMessageForTemperatureHumidityDevice(currentDeviceMessage, cancellationToken);
+                }
+                else if (currentDeviceMessage.MessageType == MessagePropertyName.TempOpenDoorType)
+                {
+                    alarmMsg = await CheckMessageForTemperatureOpenDoorDevice(currentDeviceMessage, cancellationToken);
+                }
+                else if (currentDeviceMessage.MessageType == MessagePropertyName.UnknownType)
+                {
+                    alarmMsg = new
+                    {
+                        DeviceID = "unknown",
+                        MessageID = "unknown",
+                        AlarmMessage = "ALARM! Unknown device",
+                        Timestamp = DateTime.Now
+                    };
+                }
 
-            if (alarmMsg != null)
+                if (alarmMsg != null)
+                {
+                    var messageString = JsonConvert.SerializeObject(alarmMsg);
+                    await this.StateManager.EnqueueAsync(SendAlarmMessageQueueName, messageString, cancellationToken);
+                    await RegisterReminderAsync(SendAlarmMessageReminderName, null, TimeSpan.FromMilliseconds(SendAlarmMessageReminderDueTimeInMSec), TimeSpan.FromMilliseconds(-1));
+
+                }
+            }
+        }
+
+        public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
+        {
+            var reminder = GetReminder(reminderName);
+            await UnregisterReminderAsync(reminder);
+
+            if (reminderName == SendAlarmMessageReminderName)
             {
-                var messageString = JsonConvert.SerializeObject(alarmMsg);
-                await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, cancellationToken);
+                ActorEventSource.Current.ActorMessage(this, $"Reminder {SendAlarmMessageReminderName} received.");
+                var messageString = await this.StateManager.PeekQueueAsync<string>(SendAlarmMessageQueueName, default(CancellationToken));
+                if (messageString != null)
+                {
+                    try
+                    {
+                        await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, default(CancellationToken));
+                        await this.StateManager.DequeueAsync<string>(SendAlarmMessageQueueName, default(CancellationToken));
+                    }
+                    catch { }
+                }
+                if (await this.StateManager.GetQueueLengthAsync(SendAlarmMessageQueueName) > 0)
+                    await RegisterReminderAsync(SendAlarmMessageReminderName, null, TimeSpan.FromMilliseconds(SendAlarmMessageReminderDueTimeInMSec), TimeSpan.FromMilliseconds(-1));
+
             }
         }
 
         private async Task<object> CheckMessageForTemperatureOpenDoorDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
+            ActorEventSource.Current.ActorMessage(this, $"Check Message TemperatureOpenDoorDevice.");
             object alarmMsg = null;
             var startOpenDoorTime = await this.StateManager.TryGetStateAsync<DateTime>(LastOpenDoorTimeStateKey, cancellationToken);
             var currentTemperature = Double.Parse(currentDeviceMessage.MessageData[MessagePropertyName.Temperature]);
@@ -88,7 +125,7 @@ namespace DeviceActor
                 {
                     if (startOpenDoorTime.HasValue)
                     {
-                        if (currentDeviceMessage.Timestamp.Subtract(startOpenDoorTime.Value) > openDoorDurationThreshold.Value && 
+                        if (currentDeviceMessage.Timestamp.Subtract(startOpenDoorTime.Value) > openDoorDurationThreshold.Value &&
                             currentTemperature > temperatureThreshold.Value)
                         {
                             alarmMsg = new
@@ -116,6 +153,7 @@ namespace DeviceActor
 
         private async Task<object> CheckMessageForTemperatureHumidityDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
+            ActorEventSource.Current.ActorMessage(this, $"Check Message TemperatureHumidityDevice.");
             object alarmMsg = null;
             var previousTemperature = await this.StateManager.TryGetStateAsync<double>(PreviousTemperatureStateKey, cancellationToken);
             var currentTemperature = Double.Parse(currentDeviceMessage.MessageData[MessagePropertyName.Temperature]);
@@ -222,7 +260,7 @@ namespace DeviceActor
                 object objvalue = config.Properties[configurationName];
                 if (objvalue is T variable)
                 {
-                    await this.StateManager.SetStateAsync<T>(configurationName,variable, cancellationToken);
+                    await this.StateManager.SetStateAsync<T>(configurationName, variable, cancellationToken);
                 }
                 else
                 {

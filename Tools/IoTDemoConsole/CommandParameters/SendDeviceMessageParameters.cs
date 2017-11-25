@@ -12,7 +12,7 @@ namespace IoTDemoConsole.CommandParameters
         /// </summary>
         /// <value>The service URI.</value>
         [ParameterMetadata("serviceUri=", "ServiceUri del device.")]
-        public  string ServiceUri { get; set; }
+        public string ServiceUri { get; set; }
 
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace IoTDemoConsole.CommandParameters
         /// <value>The device identifier.</value>
         [ParameterMetadata("deviceId=", "Id del device.")]
         [ParameterRequired("Il parametro deviceId è obbligatorio")]
-        public  string DeviceId { get; set; }
+        public string DeviceId { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the file.
@@ -41,6 +41,9 @@ namespace IoTDemoConsole.CommandParameters
 
         [ParameterMetadata("createFile", "Crea il file JSON per la configurazione", ParameterMetadataAttribute.ParameterType.Switch)]
         public virtual bool CreateFile { get; set; }
+
+        [ParameterMetadata("msgTot=", "Numero di messaggi da inviare. Default 1.")]
+        public virtual int NumberOfMessages { get; set; } = 1;
 
     }
 }

@@ -43,6 +43,7 @@
     <IsServiceFabricServiceProject>true</IsServiceFabricServiceProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="FineGrainQueueManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DeviceActor.cs" />
     <Compile Include="Program.cs" />
