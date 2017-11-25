@@ -14,6 +14,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.ServiceFabric.Data;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 
 namespace AlarmWriterService
 {
@@ -87,7 +88,7 @@ namespace AlarmWriterService
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceReplicaListener[0];
+            return new[] { new ServiceReplicaListener(this.CreateServiceRemotingListener) };
         }
 
         /// <summary>
