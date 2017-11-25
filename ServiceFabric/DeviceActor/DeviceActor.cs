@@ -47,7 +47,6 @@ namespace DeviceActor
         {
             Object alarmMsg = null;
 
-            //string deviceID = currentDeviceMessage.DeviceID;
             if (currentDeviceMessage.MessageType == MessagePropertyName.TempHumType)
             {
                 alarmMsg = await CheckMessageForTemperatureHumidityDevice(currentDeviceMessage, cancellationToken);
