@@ -9,20 +9,21 @@ using System.Net.Mail;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UsefulResources;
+using System.Configuration;
 
 namespace AlarmGenerator 
 {
     class Program
     {
-        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+        //public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         public static string queueName = "sbqueue3";
         public static string topicName = "sbalarmclassic";
 
         static void Main(string[] args)
         {
             Console.WriteLine($"AlarmGenerator - reads messages from {queueName} and generates alarms. Ctrl-C to exit.\n");
-             
-            var queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
+
+            var queueClient = QueueClient.CreateFromConnectionString(ConfigurationManager.AppSettings["sbConnectionstring"], queueName);
             string alarm = null;
 
             queueClient.OnMessage(message =>
@@ -56,7 +57,7 @@ namespace AlarmGenerator
 
                 if(alarm != null && alarm != "no alarm")
                 {
-                    SendToTopic(currentMessage, s, sbConnectionString, topicName);
+                    SendToTopic(currentMessage, s, ConfigurationManager.AppSettings["sbConnectionstring"], topicName);
                 }
 
             });

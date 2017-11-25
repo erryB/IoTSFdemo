@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace NewStateCalculator
     class Program
     {
         
-        public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
+        //public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         public static string topicName = "sbtopic2";
         public static string subscriptionName = "toNewState";
         public static string queueName = "sbqueue3";
@@ -29,7 +30,7 @@ namespace NewStateCalculator
         {
             Console.WriteLine($"NewStateCalculator - reads messages from {topicName}, calculates new Status for each device. Ctrl-C to exit.\n");
             
-            var client = SubscriptionClient.CreateFromConnectionString(sbConnectionString, topicName, subscriptionName);
+            var client = SubscriptionClient.CreateFromConnectionString(ConfigurationManager.AppSettings["sbConnectionstring"], topicName, subscriptionName);
 
             //init dictionary. If you have more DeviceTypes you can use a List
             DeviceTypesStatus = new Dictionary<string, Dictionary<string, List<DeviceMessage>>>
@@ -82,7 +83,7 @@ namespace NewStateCalculator
                 //send to Q
                 var StatusToSend = JsonConvert.SerializeObject(updatedStatus);
                 //Console.WriteLine($"STATUS TO SEND: {StatusToSend}");
-                SendToQueue(StatusToSend, queueName, sbConnectionString, updatedStatus);
+                SendToQueue(StatusToSend, queueName, ConfigurationManager.AppSettings["sbConnectionstring"], updatedStatus);
                 Console.WriteLine($"STATUS SENT to {queueName}: {StatusToSend}");
 
                 //update dictionary

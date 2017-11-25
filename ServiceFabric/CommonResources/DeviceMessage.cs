@@ -38,8 +38,14 @@ namespace CommonResources
             try
             {
                 this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
-                this.MessageID = json[MessagePropertyName.MessageID].Value<Guid>();
+                //this.MessageID = json[MessagePropertyName.MessageID].Value<Guid>();
                 this.Timestamp = timestamp;
+
+                //conversion from int to Guid
+                var MessageIdInt = json[MessagePropertyName.MessageID].Value<int>();
+                byte[] MessageIDBytes = new byte[16];
+                BitConverter.GetBytes(MessageIdInt).CopyTo(MessageIDBytes, 0);
+                this.MessageID = new Guid(MessageIDBytes);
 
                 //MessageType is different for Batman and Joker devices 
                 if (messageString.Contains(MessagePropertyName.Temperature) && messageString.Contains(MessagePropertyName.Humidity))
