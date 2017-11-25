@@ -67,12 +67,11 @@ namespace DeviceActor
                 };
             }
 
-            //var proxyAlarmWriter = ServiceProxy.Create<IAlarmService>(new Uri("fabric:/EBIoTApplication/AlarmService"));
-            //await proxyAlarmWriter.ReceiveAlarmAsync(alarmMsg, deviceID);
-
-            var messageString = JsonConvert.SerializeObject(alarmMsg);
-
-            await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, cancellationToken);
+            if (alarmMsg != null)
+            {
+                var messageString = JsonConvert.SerializeObject(alarmMsg);
+                await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, cancellationToken);
+            }
         }
 
         private async Task<object> CheckMessageForTemperatureOpenDoorDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
