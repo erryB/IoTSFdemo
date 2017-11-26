@@ -47,6 +47,9 @@ namespace DeviceActor
         {
             Object alarmMsg = null;
 
+            //debug
+            ActorEventSource.Current.ActorMessage(this, $"DeviceActor - updateDeviceStateAsync - received message {currentDeviceMessage.MessageType}");
+            
             if (currentDeviceMessage.MessageType == MessagePropertyName.TempHumType)
             {
                 alarmMsg = await CheckMessageForTemperatureHumidityDevice(currentDeviceMessage, cancellationToken);
@@ -69,7 +72,16 @@ namespace DeviceActor
             if (alarmMsg != null)
             {
                 var messageString = JsonConvert.SerializeObject(alarmMsg);
+
                 await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, cancellationToken);
+
+                ActorEventSource.Current.ActorMessage(this, "DeviceActor - alarm sent");
+
+
+            } else
+            {
+                ActorEventSource.Current.ActorMessage(this, "DeviceActor - alarmMsg is null");
+
             }
         }
 
@@ -116,6 +128,8 @@ namespace DeviceActor
 
         private async Task<object> CheckMessageForTemperatureHumidityDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
+            ActorEventSource.Current.ActorMessage(this, $"DeviceActor - CheckMessageForTemperatureHumidityDevice");
+
             object alarmMsg = null;
             var previousTemperature = await this.StateManager.TryGetStateAsync<double>(PreviousTemperatureStateKey, cancellationToken);
             var currentTemperature = Double.Parse(currentDeviceMessage.MessageData[MessagePropertyName.Temperature]);
@@ -151,6 +165,8 @@ namespace DeviceActor
                 (x, y) => currentTemperature, cancellationToken);
             await this.StateManager.AddOrUpdateStateAsync<double>(PreviousHumidityStateKey, currentHumidity,
                 (x, y) => currentHumidity, cancellationToken);
+
+            ActorEventSource.Current.ActorMessage(this, $"DeviceActor - State has been updated");
 
             return alarmMsg;
         }

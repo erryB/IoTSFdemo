@@ -88,7 +88,16 @@ namespace AlarmWriterService
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new[] { new ServiceReplicaListener(this.CreateServiceRemotingListener) };
+            //return new[] { new ServiceReplicaListener(this.CreateServiceRemotingListener) };
+            //return new[]
+            //{
+            //    new ServiceReplicaListener(context =>
+            //        this.CreateServiceRemotingListener(context),
+            //        "ServiceyEndpoint",
+            //        false)
+            //};
+
+
         }
 
         /// <summary>
@@ -126,7 +135,7 @@ namespace AlarmWriterService
                     //debug print
                     ServiceEventSource.Current.ServiceMessage(this.Context, itemFromQueue.Value);
 
-                    await SendToTopic(itemFromQueue.Value ,  cancellationToken);
+                    await SendToTopic(itemFromQueue.Value, cancellationToken);
 
                     using (var tx = this.StateManager.CreateTransaction())
                     {
@@ -134,7 +143,7 @@ namespace AlarmWriterService
                     }
 
                 }
-                
+
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
 

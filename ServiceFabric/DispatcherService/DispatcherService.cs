@@ -50,7 +50,7 @@ namespace DispatcherService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service instance.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - running");
+            ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - Running");
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
             CreateQueueClient(cancellationToken);
@@ -74,32 +74,21 @@ namespace DispatcherService
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
                 string s = await reader.ReadToEndAsync();
                 DateTime timestamp = message.EnqueuedTimeUtc;
-
-                //debug
-                ServiceEventSource.Current.ServiceMessage(this.Context, $"DispatcherService - received message");
-
+                
                 var deviceMsg = new DeviceMessage(s, timestamp);
-
-                //debug
-                ServiceEventSource.Current.ServiceMessage(this.Context, $"DispatcherService - DeviceMessage created. DeviceID {deviceMsg.DeviceID}");
-
+                
                 var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
                 var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-
-                //debug
-                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - ProxyActor and ProxyBlob created");
-
+                
                 await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
+                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
 
-                //await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
+                await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
+                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to DeviceActor");
 
                 //parallel execution of 2 independent tasks
                 //await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
-
-                //debug
-                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
-
-
+                
             });
         }
 

@@ -91,7 +91,7 @@ namespace BlobWriterService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             //debug
-            ServiceEventSource.Current.ServiceMessage(this.Context, "BlobWriterService - Started");
+            ServiceEventSource.Current.ServiceMessage(this.Context, "BlobWriterService - Running");
 
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
