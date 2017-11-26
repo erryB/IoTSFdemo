@@ -52,7 +52,7 @@ namespace DeviceActor
             ActorEventSource.Current.ActorMessage(this, $"Update message arrived. {currentDeviceMessage.MessageType }");
             Object alarmMsg = null;
 
-            var lastDeviceMessage = await this.StateManager.GetStateAsync<DeviceMessage>(LastDeviceMassageStateKey, cancellationToken);
+            var lastDeviceMessage = await this.StateManager.GetOrAddStateAsync<DeviceMessage>(LastDeviceMassageStateKey,null, cancellationToken);
             if (lastDeviceMessage == null || lastDeviceMessage.Timestamp < currentDeviceMessage.Timestamp) // drop automatically the oldest messages from the last arrived
             {
                 await this.StateManager.SetStateAsync<DeviceMessage>(LastDeviceMassageStateKey, currentDeviceMessage, cancellationToken);
