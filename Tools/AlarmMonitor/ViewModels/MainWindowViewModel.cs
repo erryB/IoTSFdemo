@@ -73,7 +73,7 @@ namespace AlarmMonitor.ViewModels
             {
                 DispatcherHelper.CheckBeginInvokeOnUI(() =>
                 {
-                    UserMessage = $"[{DateTime.Now:HH:mm:ss}] Received message from device {e.DeviceId} - {e.Message}";
+                    UserMessage = $"[{e.TimeStamp:HH:mm:ss}] Received message from device {e.DeviceId} - {e.Message}";
                     var device = AlarmedDevices.FirstOrDefault(d => d.DeviceId == e.DeviceId);
                     if (device != null)
                     {

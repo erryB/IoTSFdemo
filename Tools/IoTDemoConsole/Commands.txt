@@ -1,0 +1,9 @@
+﻿	-- SETCONFIG
+
+.\IoTDemoConsole.exe setconfig -serviceUri=fabric:/EBIoTApplication/DeviceActor -deviceId=Batman -tempThreshold=30 -humThreshold=70  
+
+set batman configuration with temperature threshold equals to 30 degree and humidity threshold equals to 70 %.
+
+.\IoTDemoConsole.exe getconfig -serviceUri=fabric:/EBIoTApplication/DeviceActor -deviceId=Batman 
+
+retrieve the configuration of Batman Device and shows on the screen

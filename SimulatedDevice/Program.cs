@@ -30,7 +30,6 @@ namespace SimulatedDeviceB
         {
             double minTemperature = 20;
             double minHumidity = 60;
-            int messageID = 1;
             Random rand = new Random();
 
             while (true)
@@ -45,7 +44,7 @@ namespace SimulatedDeviceB
                     //then send a "critical message"
                     telemetryDataPoint = new
                     {
-                        MessageID = messageID++,
+                        MessageID = Guid.NewGuid(),
                         DeviceID = DeviceID,
                         Message = "WARNING - Low Battery"
                     };
@@ -58,7 +57,7 @@ namespace SimulatedDeviceB
 
                     telemetryDataPoint = new
                     {
-                        MessageID = messageID++,
+                        MessageID = Guid.NewGuid(),
                         DeviceID = DeviceID,
                         Temperature = currentTemperature,
                         Humidity = currentHumidity,

@@ -29,7 +29,6 @@ namespace SimulatedDeviceJ
         {
             double minTemperature = 20;
             //bool doorOpen = false;
-            int MessageID = 1;
             Random rand = new Random();
 
             while (true)
@@ -43,7 +42,7 @@ namespace SimulatedDeviceJ
                     //then send a "critical message"
                     telemetryDataPoint = new
                     {
-                        MessageID = MessageID++,
+                        MessageID = Guid.NewGuid(),
                         DeviceID = DeviceID,
                         Message = "WARNING - Low Battery"
                     };
@@ -56,7 +55,7 @@ namespace SimulatedDeviceJ
 
                     telemetryDataPoint = new
                     {
-                        MessageID = MessageID++,
+                        MessageID = Guid.NewGuid(),
                         DeviceID = DeviceID,
                         Temperature = currentTemperature,
                         OpenDoor = currentlyOpen

@@ -37,8 +37,7 @@ namespace AlarmWriterService
             //enqueue current alarm message to ReliableQueue, timeout 5 sec
             using (var tx = this.StateManager.CreateTransaction())
             {
-                var timeout = new System.TimeSpan(0, 0, 5);
-                await ReliableQueue.EnqueueAsync(tx, alarmMessage, timeout, cancellationToken);
+                await ReliableQueue.EnqueueAsync(tx, alarmMessage, TimeSpan.FromSeconds(5), cancellationToken);
                 await tx.CommitAsync();
             }
 
@@ -59,24 +58,37 @@ namespace AlarmWriterService
             this.ReadSettings();
         }
 
-        public async Task SendToTopic(string alarmMessage, CancellationToken cancellationToken)
+        public async Task<bool> SendToTopic(string alarmMessage, CancellationToken cancellationToken)
         {
-            var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
+            bool retVal = false;
 
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
-            writer.Write(alarmMessage);
-            writer.Flush();
-            stream.Position = 0;
-
-
-            var bm = new BrokeredMessage(stream)
+            try
             {
-                Label = "ALARM MESSAGE"
-            };
+                var client = TopicClient.CreateFromConnectionString(sbConnectionString, topicName);
 
-            await client.SendAsync(bm);
+                using (MemoryStream stream = new MemoryStream())
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(alarmMessage);
+                    writer.Flush();
+                    stream.Position = 0;
 
+                    var bm = new BrokeredMessage(stream)
+                    {
+                        Label = "ALARM MESSAGE"
+                    };
+
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "Sending Alarm to topic - {0}", alarmMessage);
+                    await client.SendAsync(bm);
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "Sent Alarm to topic - {0}", alarmMessage);
+                    retVal = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServiceEventSource.Current.ServiceMessage(this.Context, "[EXCEPTION] {0}", ex);
+            }
+            return retVal;
         }
 
         /// <summary>
@@ -111,30 +123,21 @@ namespace AlarmWriterService
                 using (var tx = this.StateManager.CreateTransaction())
                 {
                     itemFromQueue = await ReliableQueue.TryPeekAsync(tx);
+                    await tx.CommitAsync();
                 }
                 if (itemFromQueue.HasValue)
                 {
-                    ////avrò alarmMessage
-                    //JObject json = JObject.Parse(itemFromQueue.Value);
-                    //var deviceID = json["DeviceID"].Value<string>();
-                    //var msgID = json["MessageID"].Value<int>();
-                    //var timestamp = json["Timestamp"].Value<DateTime>();
-                    //var msg = json["AlarmMessage"].Value<string>();
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "Alarm message in queue - {0}", itemFromQueue.Value);
 
-                    //string line = $"{deviceID} - MessageID {msgID}: {msg} - timestamp: {timestamp}";
-
-                    //debug print
-                    ServiceEventSource.Current.ServiceMessage(this.Context, itemFromQueue.Value);
-
-                    await SendToTopic(itemFromQueue.Value ,  cancellationToken);
-
-                    using (var tx = this.StateManager.CreateTransaction())
-                    {
-                        itemFromQueue = await ReliableQueue.TryDequeueAsync(tx);
-                    }
+                    if (await SendToTopic(itemFromQueue.Value, cancellationToken))
+                        using (var tx = this.StateManager.CreateTransaction())
+                        {
+                            await ReliableQueue.TryDequeueAsync(tx);
+                            await tx.CommitAsync();
+                        }
 
                 }
-                
+
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
             }
 
