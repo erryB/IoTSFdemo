@@ -16,8 +16,18 @@ namespace SimulatedDeviceB
 
         static string DeviceID = "Batman";
 
+        static DateTime StartTime;
+        static double minTemperature = 20;
+        static double maxTemperature = 40;
+        static int temperaturePeriodInSec = 120;
+        static double minHumidity = 40;
+        static double maxHumidity = 80;
+        static int humidityPeriodInSec = 180;
+
         static void Main(string[] args)
         {
+            StartTime = DateTime.Now;
+
             Console.WriteLine($"Simulated device: {DeviceID}\n");
 
             deviceClient = DeviceClient.Create(iothubURI, new DeviceAuthenticationWithRegistrySymmetricKey(DeviceID, deviceKey));
@@ -28,8 +38,6 @@ namespace SimulatedDeviceB
 
         private static async void SendDeviceToCloudMessagesAsync()
         {
-            double minTemperature = 20;
-            double minHumidity = 60;
             Random rand = new Random();
 
             while (true)
@@ -52,8 +60,8 @@ namespace SimulatedDeviceB
                 }
                 else
                 {
-                    double currentTemperature = Math.Round((minTemperature + rand.NextDouble() * 15), 2);
-                    double currentHumidity = Math.Round((minHumidity + rand.NextDouble() * 20), 2);
+                    double currentTemperature = Math.Round(CalculateSinValue(minTemperature, maxTemperature, temperaturePeriodInSec), 2);
+                    double currentHumidity = Math.Round(CalculateSinValue(minHumidity, maxHumidity, humidityPeriodInSec), 2);
 
                     telemetryDataPoint = new
                     {
@@ -75,6 +83,13 @@ namespace SimulatedDeviceB
 
                 await Task.Delay(1000);
             }
+        }
+
+        static double CalculateSinValue(double min, double max, int periodInSeconds)
+        {
+            var delta = (max - min) / 2;
+            var t = DateTime.Now.Subtract(StartTime).TotalSeconds;
+            return min + (Math.Sin(2 * Math.PI * t / periodInSeconds) + 1) * delta;
         }
     }
 }

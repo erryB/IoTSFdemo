@@ -12,25 +12,25 @@ namespace AlarmMonitor.Models
     {
         public DeviceInfo()
         {
-            DisplayTimeout = TimeSpan.FromMinutes(1);
+            DisplayTimeout = TimeSpan.FromSeconds(5);
         }
 
         public string DeviceId
         {
-            get { return GetPropertyValue<string>(); }
-            set { SetPropertyValue(value); }
+            get => GetPropertyValue<string>();
+            set => SetPropertyValue(value);
         }
 
         public AlarmMessage LastAlarmMessage
         {
-            get { return GetPropertyValue<AlarmMessage>(); }
-            set { SetPropertyValue(value); }
+            get => GetPropertyValue<AlarmMessage>();
+            set => SetPropertyValue(value);
         }
 
         public TimeSpan DisplayTimeout
         {
-            get { return GetPropertyValue<TimeSpan>(); }
-            set { SetPropertyValue(value); }
+            get => GetPropertyValue<TimeSpan>();
+            set => SetPropertyValue(value);
         }
 
         public bool IsToBeRemoved()

@@ -63,7 +63,7 @@ namespace AlarmMonitor.ViewModels
                     });
                 }
 
-                Task.Delay(30000, cancellationToken).Wait(cancellationToken);
+                Task.Delay(10000, cancellationToken).Wait(cancellationToken);
             }
         }
 
