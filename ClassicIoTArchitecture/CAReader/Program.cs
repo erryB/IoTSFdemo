@@ -10,7 +10,6 @@ namespace CAReader
 {
     class Program
     {
-        //public static DeviceMessage deviceMsg;
         public static string queueName = "sbqueue1";
         public static string topicName = "sbtopic2";
 

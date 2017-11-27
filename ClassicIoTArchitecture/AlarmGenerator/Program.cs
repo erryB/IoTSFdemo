@@ -15,7 +15,6 @@ namespace AlarmGenerator
 {
     class Program
     {
-        //public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         public static string queueName = "sbqueue3";
         public static string topicName = "sbalarmclassic";
 
@@ -37,9 +36,10 @@ namespace AlarmGenerator
 
                 if (currentMessage.MessageType == MessagePropertyName.TempHumType)
                 {
-                    if(Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.TempIncreasingSec]) > AlarmParameters.IncTempSecTH)
+                    //if(Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.TempIncreasingSec]) > AlarmParameters.IncTempSecTH)
+                    if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH)
                     {
-                        alarm = $"ALARM - Temperature is too high and keeps increasing - {s}";
+                        alarm = $"ALARM - Temperature and Humidity are too high - {s}";
                     }
                     
                 } else if(currentMessage.MessageType == MessagePropertyName.TempOpenDoorType)

@@ -16,7 +16,6 @@ namespace NewStateCalculator
     class Program
     {
         
-        //public static string sbConnectionString = "Endpoint=sb://ebsbnamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=59Oq2KM+b5DNqRsoQ+qbua5Z7zG/7I/ohAHukC9eaKA=";
         public static string topicName = "sbtopic2";
         public static string subscriptionName = "toNewState";
         public static string queueName = "sbqueue3";
@@ -80,9 +79,8 @@ namespace NewStateCalculator
 
                 
 
-                //send to Q
+                //send to queue
                 var StatusToSend = JsonConvert.SerializeObject(updatedStatus);
-                //Console.WriteLine($"STATUS TO SEND: {StatusToSend}");
                 SendToQueue(StatusToSend, queueName, ConfigurationManager.AppSettings["sbConnectionstring"], updatedStatus);
                 Console.WriteLine($"STATUS SENT to {queueName}: {StatusToSend}");
 
