@@ -9,7 +9,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace BlobWriterService
 {
-    [EventSource(Name = "MyCompany-EBIoTApplication-BlobWriterService")]
+    [EventSource(Name = "EBIoTApplication-BlobWriterService")]
     internal sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();

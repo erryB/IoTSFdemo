@@ -9,7 +9,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace DispatcherService
 {
-    [EventSource(Name = "MyCompany-EBIoTApplication-DispatcherService")]
+    [EventSource(Name = "EBIoTApplication-DispatcherService")]
     internal sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();

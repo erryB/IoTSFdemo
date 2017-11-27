@@ -98,7 +98,7 @@ namespace DeviceActor
                 {
                     try
                     {
-                        ActorEventSource.Current.ActorMessage(this, "Sending to AlarmServiceWriter - {0}.", messageString);
+                        //ActorEventSource.Current.ActorMessage(this, "Sending to AlarmServiceWriter - {0}.", messageString);
                         await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString);
                         ActorEventSource.Current.ActorMessage(this, "Sent to AlarmServiceWriter - {0}.", messageString);
                         await this.StateManager.DequeueAsync<string>(SendAlarmMessageQueueName);
@@ -195,7 +195,7 @@ namespace DeviceActor
             await this.StateManager.AddOrUpdateStateAsync<double>(PreviousHumidityStateKey, currentHumidity,
                 (x, y) => currentHumidity, cancellationToken);
 
-            ActorEventSource.Current.ActorMessage(this, $"DeviceActor - State has been updated");
+            ActorEventSource.Current.ActorMessage(this, "DeviceActor - State has been updated");
 
             return alarmMsg;
         }

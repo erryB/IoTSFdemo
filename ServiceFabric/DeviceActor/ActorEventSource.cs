@@ -5,7 +5,7 @@ using Microsoft.ServiceFabric.Actors.Runtime;
 
 namespace DeviceActor
 {
-    [EventSource(Name = "MyCompany-EBIoTApplication-DeviceActor")]
+    [EventSource(Name = "EBIoTApplication-DeviceActor")]
     internal sealed class ActorEventSource : EventSource
     {
         public static readonly ActorEventSource Current = new ActorEventSource();

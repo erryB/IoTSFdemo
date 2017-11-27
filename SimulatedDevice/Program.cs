@@ -5,14 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.Azure.Devices.Client;
+using System.Configuration;
 
 namespace SimulatedDeviceB
 {
     class Program
     {
         static DeviceClient deviceClient;
-        static string iothubURI = "EBIoTHubDemo.azure-devices.net";
-        static string deviceKey = "5rsBW8WFm/xkmWh8HZtxS2uhK5CFk7a0B3QY0ouwI08=";
+        //static string iothubURI = "EBIoTHubDemo.azure-devices.net";
+        //static string deviceKey = "5rsBW8WFm/xkmWh8HZtxS2uhK5CFk7a0B3QY0ouwI08=";
 
         static string DeviceID = "Batman";
 
@@ -30,7 +31,7 @@ namespace SimulatedDeviceB
 
             Console.WriteLine($"Simulated device: {DeviceID}\n");
 
-            deviceClient = DeviceClient.Create(iothubURI, new DeviceAuthenticationWithRegistrySymmetricKey(DeviceID, deviceKey));
+            deviceClient = DeviceClient.Create(ConfigurationManager.AppSettings["iothubURI"], new DeviceAuthenticationWithRegistrySymmetricKey(DeviceID, ConfigurationManager.AppSettings["deviceKey"]));
 
             SendDeviceToCloudMessagesAsync();
             Console.ReadLine();

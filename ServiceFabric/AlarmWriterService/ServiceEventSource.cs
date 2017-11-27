@@ -9,7 +9,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace AlarmWriterService
 {
-    [EventSource(Name = "MyCompany-EBIoTApplication-AlarmWriterService")]
+    [EventSource(Name = "EBIoTApplication-AlarmWriterService")]
     internal sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();

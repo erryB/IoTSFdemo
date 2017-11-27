@@ -16,13 +16,18 @@ namespace UsefulResources
         [DataMember]
         public string DeviceID { get; set; }
         [DataMember]
-        public int MessageID { get; set; }
+        public Guid MessageID { get; set; } = new Guid();
         [DataMember]
-        public DateTime Timestamp { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.Now;
         [DataMember]
         public string MessageType { get; set; }
         [DataMember]
         public Dictionary<string, string> MessageData { get; set; }
+
+        public DeviceMessage()
+        {
+            this.MessageData = new Dictionary<string, string>();
+        }
 
         //create a DeviceMessage from a string that already contains MessageType and all the fields (previously formatted)
         public DeviceMessage(string messageString)
@@ -35,7 +40,7 @@ namespace UsefulResources
                 try
                 {
                     this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
-                    this.MessageID = Int32.Parse(json[MessagePropertyName.MessageID].Value<string>());
+                    this.MessageID = Guid.Parse(json[MessagePropertyName.MessageID].Value<string>());
                     this.Timestamp = DateTime.ParseExact(json[MessagePropertyName.Timestamp].Value<string>(), "MM/dd/yyyy HH:mm:ss", null);
                     this.MessageType = json[MessagePropertyName.MessageType].Value<string>();
 
@@ -98,7 +103,7 @@ namespace UsefulResources
             try
             {
                 this.DeviceID = json[MessagePropertyName.DeviceID].Value<string>();
-                this.MessageID = json[MessagePropertyName.MessageID].Value<int>();
+                this.MessageID = Guid.Parse(json[MessagePropertyName.MessageID].Value<string>());
                 this.Timestamp = timestamp;
 
                 //MessageType is different for Batman and Joker devices 
