@@ -100,7 +100,7 @@ namespace AlarmWriterService
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            //return new[] { new ServiceReplicaListener(this.CreateServiceRemotingListener) };
+            return new[] { new ServiceReplicaListener(this.CreateServiceRemotingListener) };
             //return new[]
             //{
             //    new ServiceReplicaListener(context =>
