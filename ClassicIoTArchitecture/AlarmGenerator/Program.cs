@@ -36,6 +36,7 @@ namespace AlarmGenerator
 
                 if (currentMessage.MessageType == MessagePropertyName.TempHumType)
                 {
+                    //appconfig?
                     //if(Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.TempIncreasingSec]) > AlarmParameters.IncTempSecTH)
                     if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH)
                     {
@@ -44,6 +45,7 @@ namespace AlarmGenerator
                     
                 } else if(currentMessage.MessageType == MessagePropertyName.TempOpenDoorType)
                 {
+                    //appconfig?
                     if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.OpenDoorSec]) > AlarmParameters.OpenDoorTH)
                     {
                         alarm = $"ALARM - Temperature is too high and the door is open. CLOSE THE DOOR - {s}";
