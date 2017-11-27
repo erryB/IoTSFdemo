@@ -107,10 +107,8 @@ namespace BlobWriterService
                     DeviceMessage currentMsg = null;
                     if(internalBlobQueue.Count > 0)
                     {
-                        currentMsg = internalBlobQueue.Dequeue();
-                        appendBlob.AppendText(Convert.ToString(currentMsg)+'\n');
-                        
-                        ServiceEventSource.Current.ServiceMessage(this.Context, "BlobWriterService - Message to Blob: {0}", currentMsg);
+                        await appendBlob.AppendTextAsync($"{currentMsg}\n");
+                        ServiceEventSource.Current.ServiceMessage(this.Context, "Message to Blob: {0}", currentMsg);
                     }
                 }
 

@@ -45,14 +45,14 @@ namespace DeviceActor
 
         private const string SendAlarmMessageReminderName = "SendAlarmMessageReminder";
         private const string SendAlarmMessageQueueName = "SendAlarmMessageQueue";
-        private const int SendAlarmMessageReminderDueTimeInMSec = 125;
+        private const int SendAlarmMessageReminderDueTimeInMSec = 100;
 
         public async Task UpdateDeviceStateAsync(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
             ActorEventSource.Current.ActorMessage(this, $"Update message arrived. {currentDeviceMessage.MessageType }");
             Object alarmMsg = null;
 
-            var lastDeviceMessage = await this.StateManager.GetStateAsync<DeviceMessage>(LastDeviceMassageStateKey, cancellationToken);
+            var lastDeviceMessage = await this.StateManager.GetOrAddStateAsync<DeviceMessage>(LastDeviceMassageStateKey, null, cancellationToken);
             if (lastDeviceMessage == null || lastDeviceMessage.Timestamp < currentDeviceMessage.Timestamp) // drop automatically the oldest messages from the last arrived
             {
                 await this.StateManager.SetStateAsync<DeviceMessage>(LastDeviceMassageStateKey, currentDeviceMessage, cancellationToken);
@@ -93,15 +93,20 @@ namespace DeviceActor
             if (reminderName == SendAlarmMessageReminderName)
             {
                 ActorEventSource.Current.ActorMessage(this, $"Reminder {SendAlarmMessageReminderName} received.");
-                var messageString = await this.StateManager.PeekQueueAsync<string>(SendAlarmMessageQueueName, default(CancellationToken));
+                var messageString = await this.StateManager.PeekQueueAsync<string>(SendAlarmMessageQueueName);
                 if (messageString != null)
                 {
                     try
                     {
-                        await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString, default(CancellationToken));
-                        await this.StateManager.DequeueAsync<string>(SendAlarmMessageQueueName, default(CancellationToken));
+                        ActorEventSource.Current.ActorMessage(this, "Sending to AlarmServiceWriter - {0}.", messageString);
+                        await AlarmServiceWriterProxy.SendAlarmAsync(this.Id.ToString(), messageString);
+                        ActorEventSource.Current.ActorMessage(this, "Sent to AlarmServiceWriter - {0}.", messageString);
+                        await this.StateManager.DequeueAsync<string>(SendAlarmMessageQueueName);
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        ActorEventSource.Current.ActorMessage(this, $"[EXCEPTION] {0}", ex);
+                    }
                 }
                 if (await this.StateManager.GetQueueLengthAsync(SendAlarmMessageQueueName) > 0)
                     await RegisterReminderAsync(SendAlarmMessageReminderName, null, TimeSpan.FromMilliseconds(SendAlarmMessageReminderDueTimeInMSec), TimeSpan.FromMilliseconds(-1));
@@ -165,7 +170,7 @@ namespace DeviceActor
             {
                 if (previousTemperature.HasValue &&
                     currentTemperature > temperatureThreshold.Value &&
-                    currentTemperature > previousTemperature.Value &&
+                    //currentTemperature > previousTemperature.Value &&
                     currentHumidity > humidityTemperatureThreshold.Value)
                 {
                     alarmMsg = new
