@@ -127,7 +127,7 @@ namespace BlobWriterService
             internalBlobQueue.Enqueue(message);
             
             //debug
-            ServiceEventSource.Current.ServiceMessage(this.Context, $"BlobWriterService - Enqueued message: {message}");
+            ServiceEventSource.Current.ServiceMessage(this.Context, "BlobWriterService - Enqueued message: {0}", message);
            
 
             return Task.Delay(0, cancellationToken);

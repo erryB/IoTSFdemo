@@ -49,7 +49,7 @@ namespace DeviceActor
 
         public async Task UpdateDeviceStateAsync(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
-            ActorEventSource.Current.ActorMessage(this, $"Update message arrived. {currentDeviceMessage.MessageType }");
+            ActorEventSource.Current.ActorMessage(this, "Update message arrived. {0}", currentDeviceMessage.MessageType);
             Object alarmMsg = null;
 
             var lastDeviceMessage = await this.StateManager.GetOrAddStateAsync<DeviceMessage>(LastDeviceMassageStateKey, null, cancellationToken);
@@ -92,7 +92,7 @@ namespace DeviceActor
 
             if (reminderName == SendAlarmMessageReminderName)
             {
-                ActorEventSource.Current.ActorMessage(this, $"Reminder {SendAlarmMessageReminderName} received.");
+                ActorEventSource.Current.ActorMessage(this, $"Reminder {0} received.", SendAlarmMessageReminderName);
                 var messageString = await this.StateManager.PeekQueueAsync<string>(SendAlarmMessageQueueName);
                 if (messageString != null)
                 {
@@ -105,7 +105,7 @@ namespace DeviceActor
                     }
                     catch (Exception ex)
                     {
-                        ActorEventSource.Current.ActorMessage(this, $"[EXCEPTION] {0}", ex);
+                        ActorEventSource.Current.ActorMessage(this, "[EXCEPTION] {0}", ex);
                     }
                 }
                 if (await this.StateManager.GetQueueLengthAsync(SendAlarmMessageQueueName) > 0)
@@ -116,7 +116,7 @@ namespace DeviceActor
 
         private async Task<object> CheckMessageForTemperatureOpenDoorDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
-            ActorEventSource.Current.ActorMessage(this, $"Check Message TemperatureOpenDoorDevice.");
+            ActorEventSource.Current.ActorMessage(this, "Check Message TemperatureOpenDoorDevice.");
             object alarmMsg = null;
             var startOpenDoorTime = await this.StateManager.TryGetStateAsync<DateTime>(LastOpenDoorTimeStateKey, cancellationToken);
             var currentTemperature = Double.Parse(currentDeviceMessage.MessageData[MessagePropertyName.Temperature]);
@@ -158,7 +158,7 @@ namespace DeviceActor
 
         private async Task<object> CheckMessageForTemperatureHumidityDevice(DeviceMessage currentDeviceMessage, CancellationToken cancellationToken)
         {
-            ActorEventSource.Current.ActorMessage(this, $"Check Message TemperatureHumidityDevice.");
+            ActorEventSource.Current.ActorMessage(this, "Check Message TemperatureHumidityDevice.");
             object alarmMsg = null;
             var previousTemperature = await this.StateManager.TryGetStateAsync<double>(PreviousTemperatureStateKey, cancellationToken);
             var currentTemperature = Double.Parse(currentDeviceMessage.MessageData[MessagePropertyName.Temperature]);

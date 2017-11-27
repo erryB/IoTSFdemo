@@ -41,7 +41,7 @@ namespace AlarmWriterService
                 await tx.CommitAsync();
             }
 
-            ServiceEventSource.Current.ServiceMessage(this.Context, $"AlarmWriterService - Enqueued message: {alarmMessage}");
+            ServiceEventSource.Current.ServiceMessage(this.Context, "AlarmWriterService - Enqueued message: {0}", alarmMessage);
 
 
         }
