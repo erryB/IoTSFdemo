@@ -1,16 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="DeviceActorPkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <ServiceTypes>
-    <StatefulServiceType ServiceTypeName="DeviceActorType" HasPersistedState="true">
+    <StatefulServiceType ServiceTypeName="THDeviceActorType" HasPersistedState="true">
       <Extensions>
-        <Extension Name="__GeneratedServiceType__" GeneratedId="03da95b9-7ac3-4d66-976b-7b279f032bb5|Persisted">
+        <Extension Name="__GeneratedServiceType__" GeneratedId="0da32473-2015-4cc4-8d8d-4cea8b637e6d|Persisted">
           <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
-            <DefaultService Name="DeviceActor" />
-            <ServiceEndpoint Name="DeviceActorEndpoint" />
-            <ReplicatorEndpoint Name="DeviceActorReplicatorEndpoint" />
-            <ReplicatorConfigSection Name="DeviceActorReplicatorConfig" />
-            <ReplicatorSecurityConfigSection Name="DeviceActorReplicatorSecurityConfig" />
-            <StoreConfigSection Name="DeviceActorLocalStoreConfig" />
+            <DefaultService Name="THDeviceActor" />
+            <ServiceEndpoint Name="THDeviceActorEndpoint" />
+            <ReplicatorEndpoint Name="THDeviceActorReplicatorEndpoint" />
+            <ReplicatorConfigSection Name="THDeviceActorReplicatorConfig" />
+            <ReplicatorSecurityConfigSection Name="THDeviceActorReplicatorSecurityConfig" />
+            <StoreConfigSection Name="THDeviceActorLocalStoreConfig" />
+          </GeneratedNames>
+        </Extension>
+      </Extensions>
+    </StatefulServiceType>
+    <StatefulServiceType ServiceTypeName="TDDeviceActorType" HasPersistedState="true">
+      <Extensions>
+        <Extension Name="__GeneratedServiceType__" GeneratedId="4432ec4c-50ef-4a1c-ac94-8b79fb18a996|Persisted">
+          <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
+            <DefaultService Name="TDDeviceActor" />
+            <ServiceEndpoint Name="TDDeviceActorEndpoint" />
+            <ReplicatorEndpoint Name="TDDeviceActorReplicatorEndpoint" />
+            <ReplicatorConfigSection Name="TDDeviceActorReplicatorConfig" />
+            <ReplicatorSecurityConfigSection Name="TDDeviceActorReplicatorSecurityConfig" />
+            <StoreConfigSection Name="TDDeviceActorLocalStoreConfig" />
           </GeneratedNames>
         </Extension>
       </Extensions>
@@ -26,8 +40,10 @@
   <ConfigPackage Name="Config" Version="1.0.0" />
   <Resources>
     <Endpoints>
-      <Endpoint Name="DeviceActorEndpoint" />
-      <Endpoint Name="DeviceActorReplicatorEndpoint" />
+      <Endpoint Name="THDeviceActorEndpoint" />
+      <Endpoint Name="THDeviceActorReplicatorEndpoint" />
+      <Endpoint Name="TDDeviceActorEndpoint" />
+      <Endpoint Name="TDDeviceActorReplicatorEndpoint" />
     </Endpoints>
   </Resources>
   <!-- The content will be generated during build -->

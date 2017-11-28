@@ -1,10 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Settings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/2011/01/fabric">
-  <Section Name="DeviceActorReplicatorConfig">
-    <Parameter Name="ReplicatorEndpoint" Value="DeviceActorReplicatorEndpoint" />
+  <Section Name="THDeviceActorReplicatorConfig">
+    <Parameter Name="ReplicatorEndpoint" Value="THDeviceActorReplicatorEndpoint" />
     <Parameter Name="BatchAcknowledgementInterval" Value="0.005" />
   </Section>
-  <Section Name="DeviceActorReplicatorSecurityConfig">
+  <Section Name="THDeviceActorReplicatorSecurityConfig">
+    <Parameter Name="CredentialType" Value="None" />
+  </Section>
+  <Section Name="TDDeviceActorReplicatorConfig">
+    <Parameter Name="ReplicatorEndpoint" Value="TDDeviceActorReplicatorEndpoint" />
+    <Parameter Name="BatchAcknowledgementInterval" Value="0.005" />
+  </Section>
+  <Section Name="TDDeviceActorReplicatorSecurityConfig">
     <Parameter Name="CredentialType" Value="None" />
   </Section>
   <!-- The content will be generated during build -->
