@@ -72,7 +72,7 @@ namespace SimulatedDeviceB
                         Humidity = currentHumidity,
 
                     };
-                    level = "normal";
+                    level = "normale";
                 }
 
                 var messageString = JsonConvert.SerializeObject(telemetryDataPoint);

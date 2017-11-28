@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define EH
+
+using System;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Threading;
@@ -54,25 +56,31 @@ namespace DispatcherService
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - Running");
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
+
+#if EH
+            await CreateHUbClientAsync(cancellationToken);
+#endif
+#if SB
             await CreateQueueClientAsync(cancellationToken);
-
-            //await CreateHUbClientAsync(cancellationToken);
-
+#endif
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                //EventData eventData = await eventHubReceiver.ReceiveAsync();
-                //if (eventData != null)
-                //{
-                //    await ElaborateEventDataAsync(eventData, cancellationToken);
-                //}
-                //await Task.Delay(TimeSpan.FromMilliseconds(10), cancellationToken);
-
+#if EH
+                EventData eventData = await eventHubReceiver.ReceiveAsync(TimeSpan.FromSeconds(1));
+                if (eventData != null)
+                {
+                    await ElaborateEventDataAsync(eventData, cancellationToken);
+                }
+                await Task.Delay(TimeSpan.FromMilliseconds(10), cancellationToken);
+#endif
+#if SB
                 await Task.Delay(TimeSpan.FromMilliseconds(1000), cancellationToken);
+#endif
             }
         }
 
+#if EH
         #region [ EventHub integration]
         private EventHubClient eventHubClient;
         private EventHubReceiver eventHubReceiver;
@@ -113,7 +121,9 @@ namespace DispatcherService
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
         }
         #endregion [ EventHub integration ]
+#endif
 
+#if SB
         #region [ ServiceBusQueue integration ]
         private async Task CreateQueueClientAsync(CancellationToken cancellationToken)
         {
@@ -124,9 +134,13 @@ namespace DispatcherService
 
             queueClient.OnMessage(async message =>
             {
-                Stream stream = message.GetBody<Stream>();
-                StreamReader reader = new StreamReader(stream, Encoding.ASCII);
-                string s = await reader.ReadToEndAsync();
+                string s = null;
+                using (Stream stream = message.GetBody<Stream>())
+                using (StreamReader reader = new StreamReader(stream, Encoding.ASCII))
+                {
+                    s = await reader.ReadToEndAsync();
+                }
+
                 DateTime timestamp = message.EnqueuedTimeUtc;
 
                 var deviceMsg = new DeviceMessage(s, timestamp);
@@ -157,7 +171,7 @@ namespace DispatcherService
             });
         }
         #endregion [ ServiceBusQueue integration ]
-
+#endif
 
         private void ReadSettings()
         {
@@ -172,10 +186,12 @@ namespace DispatcherService
         private async void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
         {
             this.ReadSettings();
-
+#if SB
             await CreateQueueClientAsync(default(CancellationToken));
-            //await CreateHUbClientAsync(default(CancellationToken));
-
+#endif
+#if EH
+            await CreateHUbClientAsync(default(CancellationToken));
+#endif
         }
 
 
