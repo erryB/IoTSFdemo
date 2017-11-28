@@ -54,21 +54,22 @@ namespace DispatcherService
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - Running");
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
-            //await CreateQueueClientAsync(cancellationToken);
+            await CreateQueueClientAsync(cancellationToken);
 
-            await CreateHUbClientAsync(cancellationToken);
+            //await CreateHUbClientAsync(cancellationToken);
 
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                EventData eventData = await eventHubReceiver.ReceiveAsync();
-                if (eventData != null)
-                {
-                    await ElaborateEventDataAsync(eventData, cancellationToken);
-                }
+                //EventData eventData = await eventHubReceiver.ReceiveAsync();
+                //if (eventData != null)
+                //{
+                //    await ElaborateEventDataAsync(eventData, cancellationToken);
+                //}
+                //await Task.Delay(TimeSpan.FromMilliseconds(10), cancellationToken);
 
-                await Task.Delay(TimeSpan.FromMilliseconds(10), cancellationToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(1000), cancellationToken);
             }
         }
 
@@ -132,13 +133,27 @@ namespace DispatcherService
                 if (DeviceMessageMap.ContainsKey(deviceMsg.MessageType))
                 {
                     var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri(DeviceMessageMap[deviceMsg.MessageType]));
-                    await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to DeviceActor");
+                    try
+                    {
+                        await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
+                        ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to DeviceActor");
+                    }
+                    catch (Exception ex)
+                    {
+                        ServiceEventSource.Current.ServiceMessage(this.Context, "[EXCEPTION] {0}", ex);
+                    }
                 }
 
                 var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-                await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
-                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
+                try
+                {
+                    await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
+                }
+                catch (Exception ex)
+                {
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "[EXCEPTION] {0}", ex);
+                }
             });
         }
         #endregion [ ServiceBusQueue integration ]
@@ -158,8 +173,8 @@ namespace DispatcherService
         {
             this.ReadSettings();
 
-            //await CreateQueueClientAsync(default(CancellationToken));
-            await CreateHUbClientAsync(default(CancellationToken));
+            await CreateQueueClientAsync(default(CancellationToken));
+            //await CreateHUbClientAsync(default(CancellationToken));
 
         }
 

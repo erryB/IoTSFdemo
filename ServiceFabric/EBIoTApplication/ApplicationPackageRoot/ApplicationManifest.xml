@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="EBIoTApplicationType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
-    <Parameter Name="AlarmWriterService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="AlarmWriterService_MinReplicaSetSize" DefaultValue="2" />
     <Parameter Name="AlarmWriterService_PartitionCount" DefaultValue="1" />
     <Parameter Name="AlarmWriterService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="BlobWriterService_InstanceCount" DefaultValue="1" />
@@ -85,7 +85,7 @@
     </Service>
     <Service Name="DispatcherService" ServicePackageActivationMode="ExclusiveProcess">
       <StatefulService ServiceTypeName="DispatcherServiceType" TargetReplicaSetSize="[DispatcherService_TargetReplicaSetSize]" MinReplicaSetSize="[DispatcherService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="2" LowKey="0" HighKey="1" />
+        <UniformInt64Partition PartitionCount="1" LowKey="0" HighKey="1" />
       </StatefulService>
     </Service>
     <Service Name="THDeviceActor" GeneratedIdRef="0da32473-2015-4cc4-8d8d-4cea8b637e6d|Persisted">

@@ -45,5 +45,6 @@ namespace IoTDemoConsole.CommandParameters
         [ParameterMetadata("createFile", "Crea il file JSON per la configurazione", ParameterMetadataAttribute.ParameterType.Switch)]
         public  bool CreateFile { get; set; }
 
+
     }
 }

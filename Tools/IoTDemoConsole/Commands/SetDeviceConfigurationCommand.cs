@@ -9,11 +9,11 @@ using IoTDemoConsole.Helpers;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace IoTDemoConsole.Commands
 {
-
-    public class SetDeviceConfigurationCommand : ConsoleCommandBase<SetDeviceConfigurationParameters>
+   public class SetDeviceConfigurationCommand : ConsoleCommandBase<SetDeviceConfigurationParameters>
     {
         protected override bool AreArgumentsOk(SetDeviceConfigurationParameters arguments)
         {
