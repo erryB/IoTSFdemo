@@ -18,12 +18,18 @@ using System.Fabric.Description;
 
 namespace DispatcherService
 {
-    
+
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
     internal sealed class DispatcherService : StatelessService
     {
+        private static readonly IDictionary<string, string> DeviceMessageMap = new Dictionary<string, string>()
+        {
+            {MessagePropertyName.TempOpenDoorType, "fabric:/EBIoTApplication/TDDeviceActor"},
+            {MessagePropertyName.TempHumType, "fabric:/EBIoTApplication/THDeviceActor"}
+        };
+
         private string sbConnectionString;
         private string queueName;
 
@@ -32,7 +38,7 @@ namespace DispatcherService
         { }
 
         private QueueClient queueClient;
-        
+
         /// <summary>
         /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
         /// </summary>
@@ -40,9 +46,9 @@ namespace DispatcherService
         protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
         {
             return new ServiceInstanceListener[0];
-            
+
         }
-        
+
 
         /// <summary>
         /// This is the main entry point for your service instance.
@@ -74,21 +80,22 @@ namespace DispatcherService
                 StreamReader reader = new StreamReader(stream, Encoding.ASCII);
                 string s = await reader.ReadToEndAsync();
                 DateTime timestamp = message.EnqueuedTimeUtc;
-                
+
                 var deviceMsg = new DeviceMessage(s, timestamp);
-                
-                var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri("fabric:/EBIoTApplication/DeviceActor"));
+                if (DeviceMessageMap.ContainsKey(deviceMsg.MessageType))
+                {
+                    var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri(DeviceMessageMap[deviceMsg.MessageType]));
+                    await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
+                    ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to DeviceActor");
+                }
+
                 var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
-                
                 await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
                 ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
 
-                await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
-                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to DeviceActor");
-
                 //parallel execution of 2 independent tasks
                 //await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
-                
+
             });
         }
 
@@ -105,9 +112,9 @@ namespace DispatcherService
         private void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
         {
             this.ReadSettings();
-            if(queueClient != null)
+            if (queueClient != null)
             {
-                
+
             }
             CreateQueueClient(default(CancellationToken));
 
