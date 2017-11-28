@@ -5,7 +5,8 @@
     <Parameter Name="AlarmWriterService_MinReplicaSetSize" Value="3" />
     <Parameter Name="AlarmWriterService_TargetReplicaSetSize" Value="3" />
     <Parameter Name="BlobWriterService_InstanceCount" Value="1" />
-    <Parameter Name="DispatcherService_InstanceCount" Value="1" />
+    <Parameter Name="DispatcherService_MinReplicaSetSize" Value="3" />
+    <Parameter Name="DispatcherService_TargetReplicaSetSize" Value="2" />
     <Parameter Name="THDeviceActor_PartitionCount" Value="1" />
     <Parameter Name="TDDeviceActor_PartitionCount" Value="1" />
   </Parameters>

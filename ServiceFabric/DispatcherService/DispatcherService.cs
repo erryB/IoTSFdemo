@@ -15,6 +15,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using BlobWriter.interfaces;
 using CommonResources;
 using System.Fabric.Description;
+using System.Linq;
 
 namespace DispatcherService
 {
@@ -22,7 +23,7 @@ namespace DispatcherService
     /// <summary>
     /// An instance of this class is created for each service instance by the Service Fabric runtime.
     /// </summary>
-    internal sealed class DispatcherService : StatelessService
+    internal sealed class DispatcherService : StatefulService
     {
         private static readonly IDictionary<string, string> DeviceMessageMap = new Dictionary<string, string>()
         {
@@ -33,22 +34,16 @@ namespace DispatcherService
         private string sbConnectionString;
         private string queueName;
 
-        public DispatcherService(StatelessServiceContext context)
+        public DispatcherService(StatefulServiceContext context)
             : base(context)
         { }
 
         private QueueClient queueClient;
 
-        /// <summary>
-        /// Optional override to create listeners (e.g., TCP, HTTP) for this service replica to handle client or user requests.
-        /// </summary>
-        /// <returns>A collection of listeners.</returns>
-        protected override IEnumerable<ServiceInstanceListener> CreateServiceInstanceListeners()
+        protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return new ServiceInstanceListener[0];
-
+            return new ServiceReplicaListener[0];
         }
-
 
         /// <summary>
         /// This is the main entry point for your service instance.
@@ -59,19 +54,71 @@ namespace DispatcherService
             ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - Running");
             this.Context.CodePackageActivationContext.ConfigurationPackageModifiedEvent += CodePackageActivationContext_ConfigurationPackageModifiedEvent;
             this.ReadSettings();
-            CreateQueueClient(cancellationToken);
+            //await CreateQueueClientAsync(cancellationToken);
+
+            await CreateHUbClientAsync(cancellationToken);
 
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                EventData eventData = await eventHubReceiver.ReceiveAsync();
+                if (eventData != null)
+                {
+                    await ElaborateEventDataAsync(eventData, cancellationToken);
+                }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(10), cancellationToken);
             }
         }
 
-        private void CreateQueueClient(CancellationToken cancellationToken)
+        #region [ EventHub integration]
+        private EventHubClient eventHubClient;
+        private EventHubReceiver eventHubReceiver;
+
+        private async Task CreateHUbClientAsync(CancellationToken cancellationToken)
         {
+            if (eventHubReceiver != null)
+                await eventHubReceiver.CloseAsync();
+            if (eventHubClient != null)
+                await eventHubClient.CloseAsync();
+
+            eventHubClient = EventHubClient.CreateFromConnectionString(sbConnectionString, "messages/events");
+
+            var d2cPartitions = eventHubClient.GetRuntimeInformation().PartitionIds;
+            var servicePartitionKey = ((Int64RangePartitionInformation)this.Partition.PartitionInfo).LowKey;
+
+            var hubPartition = d2cPartitions.FirstOrDefault(p => p == servicePartitionKey.ToString());
+            if (hubPartition != null)
+            {
+                eventHubReceiver = eventHubClient.GetDefaultConsumerGroup().CreateReceiver(hubPartition, DateTime.UtcNow);
+            }
+        }
+
+        private async Task ElaborateEventDataAsync(EventData eventData, CancellationToken cancellationToken)
+        {
+            string s = Encoding.UTF8.GetString(eventData.GetBytes());
+
+            var deviceMsg = new DeviceMessage(s, eventData.EnqueuedTimeUtc);
+            if (DeviceMessageMap.ContainsKey(deviceMsg.MessageType))
+            {
+                var proxyActor = ActorProxy.Create<IDeviceActor>(new ActorId(deviceMsg.DeviceID), new Uri(DeviceMessageMap[deviceMsg.MessageType]));
+                await proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken);
+                ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to DeviceActor");
+            }
+
+            var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
+            await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
+            ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
+        }
+        #endregion [ EventHub integration ]
+
+        #region [ ServiceBusQueue integration ]
+        private async Task CreateQueueClientAsync(CancellationToken cancellationToken)
+        {
+            if (queueClient != null)
+                await queueClient.CloseAsync();
+
             queueClient = QueueClient.CreateFromConnectionString(sbConnectionString, queueName);
 
             queueClient.OnMessage(async message =>
@@ -92,12 +139,10 @@ namespace DispatcherService
                 var proxyBlob = ServiceProxy.Create<IBlobWriterService>(new Uri("fabric:/EBIoTApplication/BlobWriterService"));
                 await proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken);
                 ServiceEventSource.Current.ServiceMessage(this.Context, "DispatcherService - message sent to BlobWriter");
-
-                //parallel execution of 2 independent tasks
-                //await Task.WhenAll(proxyActor.UpdateDeviceStateAsync(deviceMsg, cancellationToken), proxyBlob.ReceiveMessageAsync(deviceMsg, cancellationToken));
-
             });
         }
+        #endregion [ ServiceBusQueue integration ]
+
 
         private void ReadSettings()
         {
@@ -109,14 +154,12 @@ namespace DispatcherService
             this.queueName = configSection.Parameters["ServiceBusQueueName"].Value;
         }
 
-        private void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
+        private async void CodePackageActivationContext_ConfigurationPackageModifiedEvent(object sender, PackageModifiedEventArgs<ConfigurationPackage> e)
         {
             this.ReadSettings();
-            if (queueClient != null)
-            {
 
-            }
-            CreateQueueClient(default(CancellationToken));
+            //await CreateQueueClientAsync(default(CancellationToken));
+            await CreateHUbClientAsync(default(CancellationToken));
 
         }
 

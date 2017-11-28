@@ -4,4 +4,10 @@
     <Parameter Name="ServiceBusConnectionString" Value="" MustOverride="true"  />
     <Parameter Name="ServiceBusQueueName" Value="" MustOverride="true"  />
   </Section>
+  <Section Name="ReplicatorConfig">
+    <Parameter Name="ReplicatorEndpoint" Value="ReplicatorEndpoint" />
+  </Section>
+  <!-- This is used for securing StateManager's replication traffic. -->
+  <Section Name="ReplicatorSecurityConfig" />
+
 </Settings>

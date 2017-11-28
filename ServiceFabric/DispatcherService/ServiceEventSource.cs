@@ -65,7 +65,7 @@ namespace DispatcherService
         }
 
         [NonEvent]
-        public void ServiceMessage(StatelessServiceContext serviceContext, string message, params object[] args)
+        public void ServiceMessage(StatefulServiceContext serviceContext, string message, params object[] args)
         {
             if (this.IsEnabled())
             {
@@ -73,7 +73,7 @@ namespace DispatcherService
                 ServiceMessage(
                     serviceContext.ServiceName.ToString(),
                     serviceContext.ServiceTypeName,
-                    serviceContext.InstanceId,
+                    serviceContext.ReplicaId,
                     serviceContext.PartitionId,
                     serviceContext.CodePackageActivationContext.ApplicationName,
                     serviceContext.CodePackageActivationContext.ApplicationTypeName,
