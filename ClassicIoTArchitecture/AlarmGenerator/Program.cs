@@ -36,9 +36,10 @@ namespace AlarmGenerator
 
                 if (currentMessage.MessageType == MessagePropertyName.TempHumType)
                 {
-                    //appconfig?
+                    
+                    if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > Convert.ToDouble(ConfigurationManager.AppSettings["TemperatureTH"]) && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > Convert.ToDouble(ConfigurationManager.AppSettings["HumidityTH"]))
                     //if(Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.TempIncreasingSec]) > AlarmParameters.IncTempSecTH)
-                    if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH)
+                    //if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Humidity]) > AlarmParameters.HumidityTH)
                     {
                         alarm = $"ALARM - Temperature and Humidity are too high - {s}";
                     }
@@ -46,7 +47,8 @@ namespace AlarmGenerator
                 } else if(currentMessage.MessageType == MessagePropertyName.TempOpenDoorType)
                 {
                     //appconfig?
-                    if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.OpenDoorSec]) > AlarmParameters.OpenDoorTH)
+                    if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > Convert.ToDouble(ConfigurationManager.AppSettings["TemperatureTH"]) && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.OpenDoorSec]) > Convert.ToDouble(ConfigurationManager.AppSettings["OpenDoorTH"]))
+                    //if (Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.Temperature]) > AlarmParameters.TemperatureTH && Convert.ToDouble(currentMessage.MessageData[MessagePropertyName.OpenDoorSec]) > AlarmParameters.OpenDoorTH)
                     {
                         alarm = $"ALARM - Temperature is too high and the door is open. CLOSE THE DOOR - {s}";
                     }
